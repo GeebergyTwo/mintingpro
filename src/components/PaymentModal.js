@@ -6,7 +6,7 @@ import { useFirebase } from './UserRoleContext';
 
 const PaymentModal = () => {
   const amount = 3000; // Fixed amount
-  const publicKey = 'pk_test_db23a1a7c20c886a73c25a4ccac8b8d5a8f0f7f9';
+  const publicKey = `${process.env.PAYSTACK_PUBLIC_KEY}`;
   const { userImg, userEmail, userFullName, userID, userPhoneNo, userRole, userBalance, setUserBalance } = useFirebase();
 
   const handleSuccess = (response) => {
