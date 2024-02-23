@@ -17,6 +17,9 @@
   border-radius: 50%;
   text-align: center;
 }
+.text-theme{
+  color: #dc1e31;
+}
 a{
     color: white !important;
 }
@@ -24,9 +27,7 @@ a{
     justify-content: space-around !important;
     padding: 5rem;
 }
-.tmn{
-  /* font-family: 'Times New Roman', Times, serif; */
-}
+
 .ex-btn{
     width: 50% !important;
     border-radius: 30px !important;
@@ -54,7 +55,11 @@ a{
   cursor: pointer;
   font-size: 16px;
   text-align: end;
-  margin-left: 67%;
+  /* margin-left: 67%; */
+ 
+}
+.btn-theme a{
+  text-decoration: none !important;
 }
 .bottom-panel {
     position: fixed;
@@ -134,10 +139,47 @@ a{
   background-color: rgba(0, 0, 0, 0.5); /* Adjust opacity as needed */
   z-index: 2001; /* Ensure the backdrop is above the other content */
 }
+.modal{
+  z-index: 2001 !important;
+  position: absolute !important;
+}
+.home-container{
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  background: url('../public/circles-squares-background-design.jpg');
+  /* Image by <a href="https://www.freepik.com/free-photo/circles-squares-background-design_9590690.htm#query=background%20image%20design%20for%20web%20app&position=14&from_view=search&track=ais">Freepik</a> */
+  background-position: center 50px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  z-index: -3;
+}
+
+
+
+.home-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  filter: blur(5px); /* Adjust the blur amount */
+  z-index: -1;
+}
+
+.second_welcome_elements p{
+  font-size: 12px;
+  width: 70px;
+  padding: 0;
+  font-weight: 400;
+}
 .border-top-theme{
   font-family: 'Montserrat', sans-serif;
   border-top: 2px solid #dc1e31;
   border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .site-nav{
@@ -367,6 +409,8 @@ a{
   position: fixed;
   background: white;
   bottom: 100px;
+  min-width: 250px;
+  /* width: 35%; */
   border-radius: 5px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
   transition: 0.4s;
@@ -401,6 +445,7 @@ a{
 .taskBox{
   overflow-y: scroll;
 }
+
 .task-btn{
   height: 80%;
   outline: none;
@@ -409,6 +454,18 @@ a{
   padding: 9px;
   color: white;
   border-radius: 9px;
+}
+#imageInput:hover{
+  border: #dc1e31;
+}
+
+.fi-btn{
+  background: #dc1e31;
+  border: none;
+  outline: none;
+  color: white;
+  padding: 5px;
+  border-radius: 8px;
 }
 .success-btn{
   color: #0b7a25;
@@ -458,6 +515,12 @@ a{
     width: 25% !important;
   }
 }
+@media(min-width: 431px){
+  .unavailable p{
+    justify-content: center;
+    align-items: start;
+  }
+}
 @media (max-width: 850px) and (min-width: 650px){
   .navigation-canvas{
     width: 45% !important;
@@ -475,6 +538,9 @@ a{
   .btn-theme {
     margin: auto;
   }
+  /* .bottom-right-modal{
+    width: 55%;
+  } */
 }
 @media (max-width: 430px){
   .navigation-canvas{
@@ -484,6 +550,10 @@ a{
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+  .u-e{
+    /* font-size: 12px; */
+    text-wrap: wrap;
   }
 }
 @media(max-width: 360px){

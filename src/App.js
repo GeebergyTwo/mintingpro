@@ -9,16 +9,16 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Home from './components/Home';
 import Login from './components/Login';
 import Loading from './components/Loading';
-import Chat from './components/Chat';
 import PrivateRoute from './components/PrivateRoute';
-import PrivateChat from './components/PrivateChat';
-import PrivateLoad from './components/PrivateLoad';
-import LoadingPageCarousel from './components/LoadingPageCarousel';
+import PrivateActivate from './components/PrivateActivate';
+import PrivateBalance from './components/PrivateBalance';
+import PrivateTx from './components/PrivateTx';
 import SignUp from './components/SignUp';
 import Navbar from './components/Navbar';
 import { useLocation } from 'react-router-dom';
 import WalletBalance from './components/WalletBalance';
 import PaymentModal from './components/PaymentModal';
+import TransactionList from './components/Transactions';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,58 +30,6 @@ function App() {
   const [currentRide, setCurrentRide] = useState(null);
   const [ridePrice, setRidePrice] = useState(null);
 
-
-
-  const lookingDriverMaxTime = 30000;
-
-  useEffect(() => {
-    initAuthUser();
-    initCurrentRide();
-  }, []);
-
-  useEffect(() => {
-    if (rideRequest) {
-      const lookingDriverTimeout = setTimeout(() => {
-        alert('Cannot find your driver, please re-enter your pickup location and try again');
-        setRideRequest(null);
-        setIsLoading(false);
-      }, lookingDriverMaxTime);
-      setIsLoading(true);
-
-      const rideRef = ref(realTimeDb, 'rides/' + rideRequest.rideUuid);
-      onValue(rideRef, (snapshot) => {
-        const updatedRide = snapshot.val();
-        if (updatedRide && updatedRide.rideUuid === rideRequest.rideUuid && updatedRide.driver) {
-          setIsLoading(false);
-          clearTimeout(lookingDriverTimeout);
-          setRideRequest(null);
-          localStorage.setItem('currentRide', JSON.stringify(updatedRide));
-          setCurrentRide(updatedRide);
-        }
-      });
-    }
-  }, [rideRequest]);
-
-  useEffect(() => {
-    if (currentRide) {
-      const currentRideRef = ref(realTimeDb, `rides/${currentRide.rideUuid}`);
-      onValue(currentRideRef, (snapshot) => {
-        const updatedRide = snapshot.val();
-        if (updatedRide && updatedRide.rideUuid === currentRide.rideUuid && updatedRide.driver && (updatedRide.status === -1 || updatedRide.status === 2)) {
-          localStorage.removeItem('currentRide');
-          setCurrentRide(null);
-          window.location.reload();
-        }
-      });
-    }
-  }, [currentRide]);
-
-  const initCurrentRide = () => {
-    const currentRide = localStorage.getItem('currentRide');
-    if (currentRide) {
-      setCurrentRide(() => JSON.parse(currentRide));
-    }
-  }
 
   const initAuthUser = () => {
     const authenticatedUser = localStorage.getItem('auth');
@@ -97,17 +45,7 @@ function App() {
           <ErrorBoundary>
             <Navbar />
             <Routes>
-              <Route
-                exact
-                path="/load"
-                element={<PrivateLoad exact path="/load" element={<LoadingPageCarousel />} />}
-              />
               <Route exact path="/" element={<PrivateRoute exact path="/" element={<Home />} />} />
-              <Route
-                exact
-                path="/chat"
-                element={<PrivateChat exact path="/chat" element={<Chat />} />}
-              />
               <Route
                 exact
                 path="/login"
@@ -118,15 +56,12 @@ function App() {
                 path="/signup"
                 element={<SignUp />}
               />
-              <Route
-                exact
-                path="/balance"
-                element={<WalletBalance/>}
-              />
-              <Route
-              exact  path='/activate_account'
-              element={<PaymentModal/>}
-              />
+              <Route exact path="/balance" element={<PrivateBalance exact path="/balance" element={<WalletBalance/>} />} />
+    
+              <Route exact path="/transactions" element={<PrivateTx exact path="/transactions" element={<TransactionList/>} />} />
+   
+              <Route exact path="/activate_account" element={<PrivateActivate exact path="/activate_account" element={<PaymentModal/>} />} />
+     
             </Routes>
           </ErrorBoundary>
           {isLoading && <Loading />}

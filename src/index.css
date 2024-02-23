@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Karla:wght@200&family=Montserrat:ital,wght@0,400;0,900;1,900&family=Overpass&family=Poppins:wght@200;300;700&family=Raleway:wght@300&family=Roboto&family=Victor+Mono:wght@100&display=swap');
+
 body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
@@ -10,10 +12,14 @@ code {
     monospace;
 }
 
+
 * {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+}
+p{
+  font-family: 'Raleway', sans-serif;
 }
 /* LoadingPageCarousel.css */
 .loading-page {
@@ -53,6 +59,13 @@ input {
 .login__signup:hover {
   cursor: pointer;
   opacity: 0.8;
+}
+.p-btn{
+  border: none !important;
+  background: #F3F4F6;
+  padding: 0.875rem 0.5rem;
+  height: 100%;
+  padding-right: 15px;
 }
 
 .loading {
@@ -156,10 +169,13 @@ input {
 }
 /* The Modal (background) */
 .signup {
-  background-color: rgba(255, 255, 255, 1);
+  background: url('../public/5621625.jpg');
   display: block; /* Hidden by default */
   height: 100%; /* Full height */
   left: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   /* overflow: auto; */
   position: fixed; /* Stay in place */
   top: 0;
@@ -167,12 +183,25 @@ input {
   z-index: 1; /* Sit on top */
 }
 
+.signup::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  filter: blur(5px); /* Adjust the blur amount */
+  z-index: -1;
+}
+
 /* Modal Content/Box */
 .signup__content {
   background-color: #fefefe;
+  overflow-y: scroll;
   box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 8px 16px rgb(0 0 0 / 10%);
   margin: 15% auto; /* 15% from the top and centered */
-  margin-top: 4%;
+  margin-top: 0%;
   width: 27rem; /* Could be more or less, depending on screen size */
 }
 
@@ -235,6 +264,9 @@ input {
   width: 100%;
 }
 
+.signup__form #password{
+  border-right: none;
+}
 .signup__form select {
   background-color: #F3F4F6;
   border: 1px solid #E5E7EB;
@@ -254,9 +286,9 @@ input {
   display: block;
   font-size: 1rem;
   font-weight: 600;
-  margin: 1.25rem auto;
+  margin: 0.85rem auto;
   outline: none;
-  padding: 0.875rem 1rem;
+  padding: 0.575rem 1rem;
 }
 
 .signup__btn:hover {
@@ -652,6 +684,7 @@ input {
 .ride-detail__user-avatar img {
   width: 5rem;
   height: 5rem;
+  border-radius: 50%;
 }
 .border-top-theme .ride-detail__user-avatar img{
   /* border: 2px solid grey; */
@@ -791,6 +824,7 @@ input {
   .signup__content{
     width: 100%;
     height: 100%;
+    background-color: rgba(255, 255, 255, 0.2); /* Adjust the alpha value as needed (0.0 to 1.0) */
   }
 }
 /* Add your additional styling as needed */

@@ -2,7 +2,6 @@
 import { useContext, useRef, useEffect, useState, useCallback, Component } from 'react';
 // import custom components.
 import Loading from './Loading';
-import HomePage from './Homepage';
 import TaskManager from './TaskManager';
 // import Context
 import Context from '../Context';
@@ -12,7 +11,7 @@ import { ref, onValue} from 'firebase/database'
 import { useFirebase } from './UserRoleContext';
 
 function Home() {
-  const { userImg, userEmail, userFullName, userID, userPhoneNo, userRole, userBalance, setUserBalance } = useFirebase();
+  const { userImg, userEmail, userFullName, userID, userPhoneNo, userRole, userBalance, setUserBalance, isUserActive } = useFirebase();
 
   
   useEffect(() => {
@@ -38,17 +37,21 @@ function Home() {
 
   return (
    <>
+    <div className=' home-container'>
       <div className='container'>
       <div style={boxStyle} className='border-top-theme'>
-        <div className="my-auto ride-detail__user-avatar  d-flex justify-content-start align-items-end">
+        <div className="my-auto ride-detail__user-avatar  d-flex justify-content-start align-items-start">
           <img src={userImg} />
-          <h3 className='text-start bold'>Welcome, <span className='bold'>{userFullName}</span></h3>
+          <div className='second_welcome_elements display-block'><h3 className='text-start bold'>Welcome, <span className='bold'>{userFullName}</span></h3>
+          <p className={isUserActive ? 'alert alert-success' : 'alert alert-danger'}>{isUserActive ? 'Active' : 'Inactive'}</p>
+          </div>
         </div>
       
     </div>
-    <h2 className='text-center mt-5 bolder'>Recent Drops</h2>
+    <h2 className='text-center mt-2 bolder'>Recent Drops</h2>
       <div className='taskBox border-top-theme' style={taskBoxStyle}>
       <TaskManager />
+      </div>
       </div>
       </div>
     </>
