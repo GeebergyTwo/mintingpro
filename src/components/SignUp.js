@@ -173,108 +173,132 @@ function SignUp(props) {
 
  // Send the referral code to the server for registration.
 // Call Firebase to register a new account.
-    if (referralCode.length > 1) {
+    if (referralCode.trim() !== '') {
       const processReferralSignUp = async () =>{
-        // Query to find the user with the matching referral code
-      const q = query(collection(db, 'users'), where('referralCode', '==', referralCode));
-      const querySnapshot = await  getDocs(q);
-              
-      try {
+      // Query to find the user with the matching referral code
 
-        if (querySnapshot.size > 0) {
+      // start try
+      const userReferral = referralCode;
+      const doesReferralExist = async () => {
+      await fetch(`http://localhost:3001/api/checkUserReferral/${userReferral}`)
+       .then(response => {
+         if (!response.ok) {
+           throw new Error(`HTTP error! Status: ${response.status}`);
+         }
+         // setUsers(response)
+         // console.log(response);
+         return response.json();
+       })
+       .then(data => {
+        const referredById = data.status;
+         if(referredById !== 'false'){
+              // Listen to changes in the user role
+              
           createUserWithEmailAndPassword(auth, email, password)
           .then((userCredentials) => {
             if (userCredentials) {
               const userID = userCredentials.user.uid;
               const user = userCredentials.user;
-              const firestore = getFirestore();
-              
-              // Call Firebase Realtime Database to insert a new user.
-              const dbRef = ref(realTimeDb, `users/${userID}`);
-              set(dbRef, {
-                id: userID,
-                email,
-                phone,
-                role,
-                avatar: userAvatar,
-                fullName
-              })
-              .then(() => {
-        
-      
-                
-                const userCollection = collection(db, "users");
-                const userDocRef = doc(userCollection, userID); // newUser.id is used as the document ID
-                const userReferralCode = uuidv4(); 
-                // Set the user data in the specified document
-      
-                         // Function to update the "referredBy" field
-                         async function updateReferredBy(userId, referralCode) {
-                          // Get the user document with the provided userId
-                          const userDocRef = doc(db, 'users', userId);
-                        
-                          // Query to find the user with the matching referral code
-                          const q = query(collection(db, 'users'), where('referralCode', '==', referralCode));
-                  
-                          try {
-                            const querySnapshot = await getDocs(q);
-                  
-                            if (querySnapshot.size > 0) {
-                              // Get the first matching user
-                              const referredUser = querySnapshot.docs[0].data();
-                  
-                              // Update the "referredBy" field in the user's document
-                              setDoc(userDocRef, {
-                                id: userID,
-                                email: user.email,
-                                balance: 0,
-                                deposit: 0,
-                                dailyDropBalance: 0,
-                                referralsBalance: 0,
-                                AccountLimit: 0,
-                                referralsCount: 0,
-                                totalReferrals: 0,
-                                adRevenue : 0,
-                                hasPaid: false,
-                                referralRedeemed: false,
-                                isAccountActive: false,
-                                referralCode: userReferralCode,
-                                referredBy: referredUser.id
-                              });
-                  
-                              // Get the referring user's document
-                              const referredUserID = referredUser.id;
-                              const referringUserDocRef = doc(db, 'users', referredUserID);
+              const userReferralCode = uuidv4(); 
+              const referrer = data;
+              const referrerID = referrer.referrerInfo.userId;
 
-                              await updateDoc(referringUserDocRef, {
-                                referredUsers: increment(1),
-                              });
-                              
-                            } else {
-                              toast.error("No user found with the provided referral code", {
-                                position: toast.POSITION.TOP_CENTER,
-                              });
-                            }
-                          } catch (error) {
-                            console.error('Error updating referredBy field:', error);
-                          }
-                        }
-                  
-                        // Example usage
-                        const userId = userCredentials.user.uid; // Replace with the actual user ID
-                  
-                        updateReferredBy(userId, referralCode);
+              // payLoad data
+              const userId = prev => prev + 1;
+              const payLoad = {
+                avatar: userAvatar,
+                email,
+                name: fullName,
+                userId: userID,
+                number: phone,
+                role,
+                accountLimit : 0,
+                balance: 0,
+                deposit: 0,
+                referralsBalance : 0,
+                dailyDropBalance : 0,
+                isUserActive: false,
+                referralsCount : 0,
+                totalReferrals: 0,
+                referralCode: userReferralCode,
+                referredBy: referrerID,
+                hasPaid: false,
+                taskCounter: 0,
+                referralRedeemed: false,
+                referredUsers: 0,
+                adRevenue: 0,
+              }
+
+              const createUser = async () => {
+                  await fetch(`http://localhost:3001/api/createUser`,
+                 {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    // Add any other headers as needed
+                  },
+                  body: JSON.stringify(payLoad),
+                })
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                  })
+                  .then(data => {
+                    localStorage.setItem('new', true);
+                    toast.success(`${userCredentials.user.email} was created successfully! Please sign in with your created account`, {
+                      position: toast.POSITION.TOP_CENTER,
+                    });
+                    setIsLoading(false);
+                    // Close sign-up dialog.
+                    toggleModal(false);
+                  })
+                  .catch(error => {
+                    console.error('Error:', error.message);
+                  });
+                 
+              }
+
       
-        
-                localStorage.setItem('new', true);
-                toast.success(`${userCredentials.user.email} was created successfully! Please sign in with your created account`, {
-                  position: toast.POSITION.TOP_CENTER,
-                });
-                setIsLoading(false);
-                // Close sign-up dialog.
-                toggleModal(false);
-              });
+              createUser();
+
+              const updateReferrerData = async () => {
+                if (user) {
+                  const userDetails = {
+                    userId: referrerID,
+                  };
+              
+                  try {
+                    const response = await fetch("http://localhost:3001/api/updateInfo", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        // Add any other headers as needed
+                      },
+                      body: JSON.stringify(userDetails),
+                    });
+              
+                    if (!response.ok) {
+                      throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+              
+                    const data = await response.json();
+                  } catch (error) {
+                    console.error("Error:", error.message);
+                  }
+                }
+              };
+              
+              updateReferrerData();
+
+            
+              
+              
+              
             }
+                
+              
       
     
           })
@@ -294,18 +318,23 @@ function SignUp(props) {
             }
             
           });
-        }
-        else{
+         }
+         else{
+
           setIsLoading(false);
           toast.error(`Invalid Referral Code`, {
             position: toast.POSITION.TOP_CENTER,
           });
-        }
-      }
-      catch(error){
-        setIsLoading(false);
-        console.log(error);
-      }
+         }
+       })
+       .catch(error => {
+          setIsLoading(false);
+         console.error('this is a catch exists:', error.message);
+       });
+   }
+    doesReferralExist();
+
+      // end try
       
       
       }
@@ -318,51 +347,66 @@ function SignUp(props) {
         if (userCredentials) {
           const userID = userCredentials.user.uid;
           const user = userCredentials.user;
-          const firestore = getFirestore();
+          const userReferralCode = uuidv4(); 
           
-          // Call Firebase Realtime Database to insert a new user.
-          const dbRef = ref(realTimeDb, `users/${userID}`);
-          set(dbRef, {
-            id: userID,
-            email,
-            phone,
-            role,
-            avatar: userAvatar,
-            fullName
-          })
-          .then(() => {
-    
-            const userCollection = collection(db, "users");
-            const userDocRef = doc(userCollection, userID); // newUser.id is used as the document ID
-            const userReferralCode = uuidv4(); 
-            // Set the user data in the specified document
-            setDoc(userDocRef, {
-              id: userID,
-              email: user.email,
-              balance: 0,
-              deposit: 0,
-              AccountLimit: 0,
-              dailyDropBalance: 0,
-              referralsBalance: 0,
-              referralsCount: 0,
-              adRevenue : 0,
-              totalReferrals: 0,
-              hasPaid: false,
-              referralRedeemed: false,
-              isAccountActive: false,
-              referralCode: userReferralCode,
-              referredBy: 'none',
-              // Add other user data fields as needed
-            });
-    
-            localStorage.setItem('new', true);
-            toast.success(`${userCredentials.user.email} was created successfully! Please sign in with your created account`, {
-              position: toast.POSITION.TOP_CENTER,
-            });
-            setIsLoading(false);
-            // Close sign-up dialog.
-            toggleModal(false);
-          });
+          const createUser = async () => {
+            if(user){
+              const payLoad = {
+                avatar: userAvatar,
+                email,
+                name: fullName,
+                userId: userID,
+                number: phone,
+                role,
+                accountLimit : 0,
+                balance: 0,
+                deposit: 0,
+                referralsBalance : 0,
+                dailyDropBalance : 0,
+                isUserActive: false,
+                referralsCount : 0,
+                totalReferrals: 0,
+                referralCode: userReferralCode,
+                referredBy: 'none',
+                hasPaid: false,
+                referralRedeemed: false,
+                referredUsers: 0,
+                adRevenue: 0,
+              }
+              await fetch(`http://localhost:3001/api/createUser`,
+             {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                // Add any other headers as needed
+              },
+              body: JSON.stringify(payLoad),
+            })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then(data => {
+                localStorage.setItem('new', true);
+                toast.success(`${userCredentials.user.email} was created successfully! Please sign in with your created account`, {
+                  position: toast.POSITION.TOP_CENTER,
+                });
+                setIsLoading(false);
+                // Close sign-up dialog.
+                toggleModal(false);
+              })
+              .catch(error => {
+                console.error('Error:', error.message);
+              });
+            }
+             
+          }
+
+  
+          createUser();
+          
         }
       })
       .catch((error) => {

@@ -21,6 +21,8 @@ const [isBtnLoading, setIsBtnLoading] = useState(false);
 const handleShowWithdrawForm = () => setShowWithdrawForm(true);
 const handleCloseWithdrawForm = () => setShowWithdrawForm(false);
 
+const user = auth.currentUser;
+
 const [recipientName, setRecipientName] = useState('');           
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');
@@ -30,11 +32,36 @@ const [recipientName, setRecipientName] = useState('');
   const [transferResponse, setTransferResponse] = useState('');
   const [bankCode, setBankCode] = useState('');
   const [newReferralsBalance, setNewReferralsBalance] = useState('');
-  const [newDailyDropBalance, setNewDailyDropBalance] = useState('');
   const [newAccountLimit, setNewAccountLimit] = useState('');
+  const [isBtnDisabled, setIsBtnDisabled] = useState(false);
   
   // State to manage the selected value of the dropdown
   const [selectedValue, setSelectedValue] = useState('');
+
+  
+  const getUserDetail = async (userID) => {
+    await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+    .then(response => {
+       if (!response.ok) {
+         throw new Error(`HTTP error! Status: ${response.status}`);
+       }
+       
+       return response.json();
+     })
+     .then(data => {
+       
+       setAccountLimit(data.accountLimit);
+      setReferralsBalance(data.referralsBalance);
+       setIsUserActive(data.isUserActive);
+       setReferralsCount(data.referralsCount);
+       setTotalReferrals(data.totalReferrals);
+       setReferredUsers(data.referredUsers);
+       setUserBalance(data.balance);
+     })
+     .catch(error => {
+       
+     });
+ }
 
 
 
@@ -56,7 +83,7 @@ const [recipientName, setRecipientName] = useState('');
   const tooltipTitle = `Referred users must activate their accounts to get a confirmed referral. ${referredUsers !== undefined && referredUsers !== null ? `You currently have ${referredUsers} unconfirmed referrals`: ''}`;
 
   const secondToolTipRef = useRef();
-  const secondToolTipTitle = `Funds from your ad balance can only withdrawn at the end of the month from the 25th to 30th (starts next month).`;
+  const secondToolTipTitle = `Funds from your ad balance can only withdrawn at the end of the month from the 28th to 30th.`;
 
   useEffect(() => {
     initializeTooltip(tooltipRef.current);
@@ -116,28 +143,16 @@ const [recipientName, setRecipientName] = useState('');
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Continue with your existing transfer logic here
-    if (isAccountValid) {
-      console.log('Initiating transfer...');
-      // Your existing transfer logic
-    } else {
-      console.error('Invalid account details. Please check and try again');
-    }
-  };
+ 
   
-
 
 
   const saveTransactionData = async (transactionReference, email, amount, userID, status) => {
-    const db = getFirestore();
-    const transactionsCollection = collection(db, 'transactions');
-    setInUseReference(reference);
-  
-    try {
-      const docRef = await addDoc(transactionsCollection, {
+    // const db = getFirestore();
+    // const transactionsCollection = collection(db, 'transactions');
+    // const txID = uuidv4(); 
+    if(user){
+      const txDetails = {
         transactionReference: 'tx-' + transactionReference,
         email,
         amount,
@@ -148,12 +163,36 @@ const [recipientName, setRecipientName] = useState('');
         recipient: recipientName,
         account_number: accountNumber,
         selectedBank: selectedBank
-      });
+      };
+      await fetch(`http://localhost:3001/api/createTransactions`,
+     {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add any other headers as needed
+      },
+      body: JSON.stringify(txDetails),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        try {
       
-      console.log('Transaction document written with ID: ', docRef.id);
-    } catch (error) {
-      console.error('Error adding transaction document: ', error);
+      
+          
+        } catch (error) {
+          console.error('Error adding transaction document: ', error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error.message);
+      });
     }
+    
   };
 
   useEffect(() => {
@@ -176,12 +215,15 @@ const [recipientName, setRecipientName] = useState('');
   // accountLimit check
   const handleWithdrawal = () => {
         // Check if withdrawalAmount is a valid number
+        getUserDetail(userID);
         setIsBtnLoading(true);
+        setIsBtnDisabled(true);
         if (isNaN(amount)) {
           toast.warning(`Please enter a valid withdrawal amount.`, {
             position: toast.POSITION.TOP_CENTER,
           });
           setIsBtnLoading(false);
+          setIsBtnDisabled(false);
           return;
         }
         if(selectedValue === 'adBalance'){
@@ -191,8 +233,8 @@ const [recipientName, setRecipientName] = useState('');
          // Get the day of the month
          const dayOfMonth = currentDate.getDate();
 
-         // Check if the day is between the 20th and 30th
-        //  if (dayOfMonth >= 20 && dayOfMonth <= 30) {
+         // Check if the day is between the 29th and 30th
+        //  
         //    if(amount > adRevenue){
         //     toast.warning(`Insufficient Funds`, {
         //       position: toast.POSITION.TOP_CENTER,
@@ -204,32 +246,58 @@ const [recipientName, setRecipientName] = useState('');
         //    }
            
         //  } 
-         if(dayOfMonth === 30){
-          if(amount > adRevenue){
+        if (dayOfMonth >= 28 && dayOfMonth <= 30) {
+          if(amount > adRevenue && adRevenue !== null){
             toast.warning(`Insufficient Funds`, {
               position: toast.POSITION.TOP_CENTER,
             });
             setIsBtnLoading(false);
+            setIsBtnDisabled(false);
            }
+           else if(amount < 500 && userRole !== 'admin'){
+            toast.warning(`Minimum withdrawal amount is ₦500`, {
+              position: toast.POSITION.TOP_CENTER,
+            });
+            setIsBtnLoading(false);
+            setIsBtnDisabled(false);
+          }
            else{
             handleTransfer();
            }
            
          }
          else {
-          toast.warning(`Funds from your ad balance can only withdrawn at the end of the month from the 25th to 30th (starts next month).`, {
+          toast.warning(`Funds from your ad balance can only withdrawn at the end of the month from the 28th to 30th.`, {
             position: toast.POSITION.TOP_CENTER,
           });
           setIsBtnLoading(false);
+          setIsBtnDisabled(false);
          }
         }
+        else if(selectedValue === 'bonusBalance'){
+          if(amount > referralsBalance && referralsBalance !== null){
+            toast.warning(`Insufficient Funds`, {
+              position: toast.POSITION.TOP_CENTER,
+            });
+            setIsBtnLoading(false);
+            setIsBtnDisabled(false);
+           }
+           else if(amount < 500 && userRole !== 'admin'){
+            toast.warning(`Minimum withdrawal amount is ₦500`, {
+              position: toast.POSITION.TOP_CENTER,
+            });
+            setIsBtnLoading(false);
+            setIsBtnDisabled(false);
+          }
+           else{
+            handleTransfer();
+           }
+           
+        }
         else{
-          if (accountLimit !== null && referralsBalance !== null){
-            // Subtract withdrawal amount from referral balance
-          const updatedBalance = parseFloat(amount) - parseFloat(referralsBalance);
+          if (accountLimit !== null && dailyDropBalance !== null){
       
-          // Check if the updated balance exceeds the account limit
-          if (updatedBalance > accountLimit) {
+          if (amount > accountLimit) {
             // Alert about reaching the account limit
             toast.warning(`Account Limit reached. You can only withdraw ₦${accountLimit} from your drop balance.${!hasPaid ? 'Reactivate your account' : ''}  ${!hasPaid && referralsCount < 3 ? 'and' : ''} ${referralsCount < 3 ? 'get at least three referrals' : ''}  to increase account limit.`, {
               position: toast.POSITION.TOP_CENTER,
@@ -237,18 +305,21 @@ const [recipientName, setRecipientName] = useState('');
             });
             
             setIsBtnLoading(false);
-          } else if(updatedBalance > dailyDropBalance) {
+            setIsBtnDisabled(false);
+          } else if(amount > dailyDropBalance) {
             // Call a function or perform further actions
             toast.error(`Insufficient Funds`, {
               position: toast.POSITION.TOP_CENTER,
             });
             setIsBtnLoading(false);
+            setIsBtnDisabled(false);
           }
           else if(amount < 500 && userRole !== 'admin'){
             toast.warning(`Minimum withdrawal amount is ₦500`, {
               position: toast.POSITION.TOP_CENTER,
             });
             setIsBtnLoading(false);
+            setIsBtnDisabled(false);
           }
           else{
             handleTransfer();
@@ -261,19 +332,49 @@ const [recipientName, setRecipientName] = useState('');
   // debit user function
   const debitUser = async () =>{
     const user = auth.currentUser;
-    const userBalanceRef = doc(db, 'users', user.uid); // Assuming 'users' is your collection name
-    const userSnapshot = await getDoc(doc(db, 'users', user.uid));
+
 
     if(selectedValue === 'adBalance'){
       const newAdBalance = parseFloat(adRevenue) - parseFloat(amount);
 
-      await updateDoc(userBalanceRef, {
-        adRevenue: newAdBalance,
-      });
+      if (user) {
+        const userDetails = {
+          userId: userID,
+          adRevenue: newAdBalance,
+        };
+    
+        try {
+          const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Add any other headers as needed
+            },
+            body: JSON.stringify(userDetails),
+          });
+    
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+    
+          const data = await response.json();
+          
+        } catch (error) {
+          console.error("Error:", error.message);
+        }
+      }
+
+      saveTransactionData(reference, userEmail, amount, userID, 'success');
+
+      setIsBtnLoading(false);
+
+      getUserDetail(userID);
 
       toast.success('Withdrawal Successful', {
         position: toast.POSITION.TOP_CENTER,
       });
+
+      
 
        /* eslint-disable no-restricted-globals */
        setTimeout(() => {
@@ -282,93 +383,116 @@ const [recipientName, setRecipientName] = useState('');
       /* eslint-enable no-restricted-globals */
 
     }
-    else{
+    else if(selectedValue === 'bonusBalance'){
       if (accountLimit !== null && referralsBalance !== null){
-        // Subtract withdrawal amount from referral balance
-      const updatedBalance = parseFloat(amount) - parseFloat(referralsBalance);
   
-  
-      // Check if the updated balance exceeds the account limit
-      if (updatedBalance > accountLimit) {
-        // Alert about reaching the account limit
-        toast.warning(`Account Limit reached. You can only withdraw ₦${accountLimit} from your drop balance.${!hasPaid ? 'Reactivate your account' : ''}  ${!hasPaid && referralsCount < 3 ? 'and' : ''} ${referralsCount < 3 ? 'get at least three referrals' : ''}  to increase account limit.`, {
-          position: toast.POSITION.TOP_CENTER,
-          style: { width: '100%' }, // Adjust the width as needed
-        });
-        
-        setIsBtnLoading(false);
-      } else {
-  
-  
-        
-        const updatedReferralsBalance = parseFloat(referralsBalance) - parseFloat(amount);
-  
-        // checking
-        if(updatedBalance > 0){
-          const newDailyDropBalances = parseFloat(dailyDropBalance) - parseFloat(updatedBalance);
-          const newAccountLimits = parseFloat(accountLimit) - parseFloat(updatedBalance);
-  
-          if(dailyDropBalance >= updatedBalance){
-            await updateDoc(userBalanceRef, {
-              dailyDropBalance: newDailyDropBalances,
-              AccountLimit: newAccountLimits,
-            });
-          }
-        }
-        else{
-          if(dailyDropBalance >= updatedBalance){
-            await updateDoc(userBalanceRef, {
-              dailyDropBalance: dailyDropBalance,
-              AccountLimit: accountLimit,
-            });
-          }
-          
-        }
-        // checking
-        if(updatedReferralsBalance > 0){
-          if(dailyDropBalance >= updatedBalance){
-            await updateDoc(userBalanceRef, {
-              referralsBalance: updatedReferralsBalance,
-            });
-          }
-        }
-        else{
-          if(dailyDropBalance >= updatedBalance){
-            await updateDoc(userBalanceRef, {
-              referralsBalance: 0,
-            });
-          }
-        }
-  
-        if(dailyDropBalance >= updatedBalance){
-            setReferralsBalance(userSnapshot.data().referralsBalance);
-            setDailyDropBalance(userSnapshot.data().dailyDropBalance);
-            setAccountLimit(userSnapshot.data().accountLimit);
-  
-            saveTransactionData(reference, userEmail, amount, userID, 'success');
-            setIsBtnLoading(false);
-            toast.success('Withdrawal Successful', {
-              position: toast.POSITION.TOP_CENTER,
-            });
+      const updatedReferralsBalance = parseFloat(referralsBalance) - parseFloat(amount);
 
-             /* eslint-disable no-restricted-globals */
-             setTimeout(() => {
-              location.reload(true);
-            }, 3000);
-            /* eslint-enable no-restricted-globals */
-   
-  
+        // update the dailydropbalance, accountlimit,referralsBalance
+        // checking
+        
+      if (user) {
+        const userDetails = {
+          userId: userID,
+          referralsBalance: updatedReferralsBalance,
+        };
+    
+        try {
+          const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Add any other headers as needed
+            },
+            body: JSON.stringify(userDetails),
+          });
+    
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+    
+          const data = await response.json();
           
-          
+        } catch (error) {
+          console.error("Error:", error.message);
         }
-        else{
-        toast.error('Insufficient funds!', {
+      }
+  
+
+        saveTransactionData(reference, userEmail, amount, userID, 'success');
+
+        setIsBtnLoading(false);
+
+        getUserDetail(userID);
+
+        toast.success('Withdrawal Successful', {
           position: toast.POSITION.TOP_CENTER,
         });
-        setIsBtnLoading(false);
+  
+         /* eslint-disable no-restricted-globals */
+         setTimeout(() => {
+          location.reload(true);
+        }, 3000);
+        /* eslint-enable no-restricted-globals */
+  
+
+
+      }
+    }
+    else{
+             
+        const newDailyDropBalance = parseFloat(dailyDropBalance) - parseFloat(amount);
+        const newAccountLimit = parseFloat(accountLimit) - parseFloat(amount);
+        // for daily drops to update account limit
+
+        if (user) {
+          const userDetails = {
+            userId: userID,
+            dailyDropBalance: newDailyDropBalance,
+            accountLimit: newAccountLimit,
+          };
+      
+          try {
+            const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                // Add any other headers as needed
+              },
+              body: JSON.stringify(userDetails),
+            });
+      
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+      
+            const data = await response.json();
+            
+          } catch (error) {
+            console.error("Error:", error.message);
+          }
         }
-      }
-      }
+
+
+        saveTransactionData(reference, userEmail, amount, userID, 'success');
+
+        setIsBtnLoading(false);
+
+        getUserDetail(userID);
+
+        toast.success('Withdrawal Successful', {
+          position: toast.POSITION.TOP_CENTER,
+        });
+
+         /* eslint-disable no-restricted-globals */
+         setTimeout(() => {
+          location.reload(true);
+        }, 3000);
+        /* eslint-enable no-restricted-globals */
+
+
+      
+    
     }
     
   }
@@ -377,7 +501,7 @@ const [recipientName, setRecipientName] = useState('');
     try {
       const paystackKey = 'sk_live_748347880c6e8c5da1635aec4b211ea3aecb2123';
 
-      console.log('Initiating transfer...');
+      
 
       // Find the selected bank code
       const selectedBankObject = bankList.find(
@@ -390,6 +514,7 @@ const [recipientName, setRecipientName] = useState('');
           position: toast.POSITION.TOP_CENTER,
         });
         setIsBtnLoading(false);
+        setIsBtnDisabled(false);
         return;
       }
 
@@ -438,13 +563,13 @@ const [recipientName, setRecipientName] = useState('');
 
       setTransferResponse(initiateTransferResponse.data);
       debitUser();
-      console.log('Transfer initiated:', initiateTransferResponse.data);
     } catch (error) {
       console.error('Error initiating transfer:', error.response.data);
       toast.warning('Withdrawal not completed: Please confirm your details and try again', {
         position: toast.POSITION.TOP_CENTER,
       });
       setIsBtnLoading(false);
+      setIsBtnDisabled(false);
     }
   };
 
@@ -507,6 +632,7 @@ const [recipientName, setRecipientName] = useState('');
       <select className='form-control mt-4' id="myDropdown" value={selectedValue} onChange={handleDropdownChange}>
         <option value="">Select an option</option>
         <option value="adBalance">Withdraw From Ad Balance</option>
+        <option value="bonusBalance">Withdraw From Bonus Balance</option>
         <option value="walletBalance">Withdraw From Wallet Balance</option>
       </select>
       </div>
@@ -544,7 +670,7 @@ const [recipientName, setRecipientName] = useState('');
               </form>
             </div>
            
-            <button onClick={handleWithdrawal} className='btn-theme text-center mx-auto mb-5 mt-0'>
+            <button onClick={handleWithdrawal}  className={`btn-theme text-center mx-auto mb-5 mt-0 ${isBtnDisabled ? 'disabled' : ''}`}>
             {isBtnLoading ? (
                  <img src={myRedImage} alt="Loading" width="20" height="20" />
              ) : (

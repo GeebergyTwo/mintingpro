@@ -4,125 +4,253 @@ import { doc, getDoc, updateDoc, getFirestore, collection, addDoc} from 'firebas
 import { auth, db } from '../firebase';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { data } from 'jquery';
 
 
 const PaymentModal = () => {
   const amount = 3000; // Fixed amount
   const publicKey = 'pk_live_f27d2332cfd754cb3d37657e587bf209a8bb9c32';
   const user = auth.currentUser;
-  const { userImg, userEmail, userFullName, userID, userPhoneNo, userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, isUserActive, setIsUserActive } = useFirebase();
+  const [userData, setUserData] = useState({});
+  const { userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit} = useFirebase();
+  const {txID, setTxId} = useState(null);
 
   const [email, setEmail] = useState(''); // Initialize email with user's email
+
+  const getUserDetail = async (userID) => {
+    await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+    .then(response => {
+       if (!response.ok) {
+         throw new Error(`HTTP error! Status: ${response.status}`);
+       }
+       
+       return response.json();
+     })
+     .then(data => {
+       
+       setAccountLimit(data.accountLimit);
+      setReferralsBalance(data.referralsBalance);
+       setIsUserActive(data.isUserActive);
+       setReferralsCount(data.referralsCount);
+       setTotalReferrals(data.totalReferrals);
+       setReferredUsers(data.referredUsers);
+       setUserBalance(data.balance);
+       setDeposit(data.deposit);
+       setUserData(data);
+     })
+     .catch(error => {
+       
+     });
+ }
+
   const saveTransactionData = async (transactionReference, email, amount, userID, status) => {
-    const db = getFirestore();
-    const transactionsCollection = collection(db, 'transactions');
-  
-    try {
-      const docRef = await addDoc(transactionsCollection, {
-        transactionReference,
+    // const db = getFirestore();
+    // const transactionsCollection = collection(db, 'transactions');
+    // const txID = uuidv4(); 
+    if(user){
+      const txDetails = {
+        transactionReference: 'tx-' + transactionReference,
         email,
         amount,
         userID,
         status, // Include the status field
         timestamp: new Date(),
         transactionType: 'Deposit',
-      });
+      };
+      await fetch(`http://localhost:3001/api/createTransactions`,
+     {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add any other headers as needed
+      },
+      body: JSON.stringify(txDetails),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        try {
       
-      console.log('Transaction document written with ID: ', docRef.id);
-    } catch (error) {
-      console.error('Error adding transaction document: ', error);
+      
+        } catch (error) {
+          console.error('Error adding transaction document: ', error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error.message);
+      });
     }
+    
   };
 
-
-  const updateAccountBalance = async () =>{
-
-   
-
-    const balanceRef = doc(db, 'users', user.uid);
-    const balanceSnapshot = await getDoc(balanceRef);
-    // Update the user's balance in Firebase
-    const userRef = doc(db, 'users', user.uid);
-    const currentBalance = balanceSnapshot.data().balance;
-    const totalDeposit = parseFloat(balanceSnapshot.data().deposit) + parseFloat(amount);
-    const newBalance = currentBalance;
-
-    const isAccountActive = balanceSnapshot.data().isAccountActive;
-    
-    if(!isAccountActive){
-      await updateDoc(userRef, { isAccountActive: true});
-      const isAccountActive = balanceSnapshot.data().isAccountActive;
-      setIsUserActive(isAccountActive);
-    }
-    await updateDoc(userRef, { deposit: totalDeposit});
-    await updateDoc(userRef, { balance: newBalance});
-    await updateDoc(userRef, { hasPaid: true});
-
-
-    
-    if (balanceSnapshot.exists()) {
-      const updatedBalance = balanceSnapshot.data().balance;
-      
-      // Update userBalance in the context
-      setUserBalance(updatedBalance);
-    }
-  }
-
   // credit user for referral
-// credit user for referral
-const creditReferrer = async () => {
-  // Assuming you have the user ID of the current user
-  const currentUserID = user.uid; // Replace with the actual user ID
 
-  // Get the current user's document
-  const currentUserDocRef = doc(db, 'users', currentUserID);
+// credit user for referral
+const creditReferrer = async (userID) => {
+  // Assuming you have the user ID of the current user
+  await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+  .then(response => {
+     if (!response.ok) {
+       throw new Error(`HTTP error! Status: ${response.status}`);
+     }
+     
+     return response.json();
+   })
+   .then(data => {
+    
+    const firstCredit = async () =>{
+      // current user data
+      const referredByUserID = data.referredBy;
+      const referralRedeemed = data.referralRedeemed || false;
+  
+      await fetch(`http://localhost:3001/api/userDetail/${referredByUserID}`)
+      .then(response => {
+         if (!response.ok) {
+           throw new Error(`HTTP error! Status: ${response.status}`);
+         }
+     
+         return response.json();
+       })
+       .then(data => {
+        const finalCredit = async () =>{
+          // rferrer data
+
+          const newReferralsCount = parseFloat(data.referralsCount) + 1;
+          const newTotalReferrals = parseFloat(data.totalReferrals) + 1;
+          const dailyDropBalance = parseFloat(data.dailyDropBalance);
+          const newReferralsBalance = parseFloat(data.referralsBalance) + 500;
+          const newBalance = parseFloat(dailyDropBalance) + parseFloat(newReferralsBalance);
+
+          
+if (referredByUserID && !referralRedeemed) {
+  const userDetails = {
+    userId: referredByUserID,
+    referralsCount: newReferralsCount,
+    totalReferrals: newTotalReferrals,
+    balance: newBalance,
+    referralsBalance: newReferralsBalance,
+
+  };
 
   try {
-    // Retrieve the referredBy and referralRedeemed fields from the current user's document
-    const currentUserSnapshot = await getDoc(currentUserDocRef);
-    const referredByUserID = currentUserSnapshot.data().referredBy;
-    const referralRedeemed = currentUserSnapshot.data().referralRedeemed || false;
+    const response = await fetch("http://localhost:3001/api/creditReferrer", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Add any other headers as needed
+      },
+      body: JSON.stringify(userDetails),
+    });
 
-    if (referredByUserID && !referralRedeemed) {
-      // Get the referring user's document
-      const referringUserDocRef = doc(db, 'users', referredByUserID);
-      const referringUserSnapshot = await getDoc(referringUserDocRef);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-      if (referringUserSnapshot.exists()) {
-        // Update the balance and referralsCount fields in the referring user's document
-        const newReferralsCount = parseFloat(referringUserSnapshot.data().referralsCount) + 1;
-        const newTotalReferrals = parseFloat(referringUserSnapshot.data().totalReferrals) + 1;
-        const dailyDropBalance = parseFloat(referringUserSnapshot.data().dailyDropBalance);
-        const newReferralsBalance = parseFloat(referringUserSnapshot.data().referralsBalance) + 500;
-        const newBalance = parseFloat(dailyDropBalance) + parseFloat(newReferralsBalance);
-        const newReferredUsers = parseFloat(referringUserSnapshot.data().referredUsers) - 1;
+    const data = await response.json();
+    updateAccountBalance();
+    alert(JSON.stringify(data));
+  } catch (error) {
+    console.error("Error:", error.message);
+  }
+}
+else if (referralRedeemed) {
+} else {
+  console.log('No referral information found for the current user.');
+}
+  
+        }
 
-        await updateDoc(referringUserDocRef, {
-          balance: newBalance,
-          referralsCount: newReferralsCount,
-          referralsBalance: newReferralsBalance,
-          totalReferrals: newTotalReferrals,
-          referredUsers: newReferredUsers,
-        });
+        finalCredit()
+       })
+       .catch(error => {
+     
+       });
+       }
 
-        console.log('Referring user updated successfully.');
-      } else {
-        console.log('Referring user not found.');
+    firstCredit()
+   })
+   .catch(error => {
+     console.log('refering error')
+   });
+
+
+};
+
+
+
+const updateAccountBalance = async () =>{
+  getUserDetail(userID);
+  const totalDeposit = parseFloat(deposit) + parseFloat(amount);
+  const newDailyDropBalance = parseFloat(dailyDropBalance) + 7500;
+  if(!isUserActive && deposit !== null && amount !== null){
+    const userDetails = {
+      userId: userID,
+      deposit: totalDeposit,
+      isUserActive: true,
+      dailyDropBalance: newDailyDropBalance,
+    };
+
+    // 
+    try {
+      const response = await fetch("http://localhost:3001/api/updateInfoAfterPay", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add any other headers as needed
+        },
+        body: JSON.stringify(userDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      // Set referralRedeemed to true at the end
-      await updateDoc(currentUserDocRef, {
-        referralRedeemed: true,
-      });
-    } else if (referralRedeemed) {
-      console.log('Referrer has already redeemed this bonus.');
-    } else {
-      console.log('No referral information found for the current user.');
+      const data = await response.json();
+    } catch (error) {
+      console.error("Error:", error.message);
     }
-  } catch (error) {
-    console.error('Error updating referring user:', error);
+    getUserDetail(userID);
   }
-};
+  else if(deposit !== null && amount !== null){
+    const userDetails = {
+      userId: userID,
+      deposit: totalDeposit,
+    };
+
+    // 
+    try {
+      const response = await fetch("http://localhost:3001/api/updateInfoAfterPay", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add any other headers as needed
+        },
+        body: JSON.stringify(userDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+    getUserDetail(userID);
+  }
+  
+  
+      
+  
+      
+   
+//  
+}
+
 
   // end of referral credit
   
@@ -139,9 +267,8 @@ const creditReferrer = async () => {
           });
   
           // Save successful transaction data to Firebase with status "success"
-          updateAccountBalance();
           saveTransactionData(response.reference, email, amount, userID, 'success');
-          creditReferrer();
+          creditReferrer(userID);
         } else {
           handleFailure(response);
         }

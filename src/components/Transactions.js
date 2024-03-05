@@ -14,29 +14,23 @@ const TransactionList = () => {
   }, [userID]);
 
   const fetchUserTransactions = async (userID) => {
-    const db = getFirestore();
-    const transactionsCollection = collection(db, 'transactions');
-  
-    // Create a query to filter transactions by the user's ID
-    const userTransactionsQuery = query(transactionsCollection, where('userID', '==', userID));
-  
     try {
-      const userTransactionsSnapshot = await getDocs(userTransactionsQuery);
-      const userTransactionsData = [];
-  
-      userTransactionsSnapshot.forEach((doc) => {
-        userTransactionsData.push(doc.data());
-      });
-  
-      // Sort transactions in chronological order based on a timestamp field (replace 'timestampField' with your actual timestamp field)
-      userTransactionsData.sort((a, b) => b.timestamp - a.timestamp);
-  
+      const response = await fetch(`http://localhost:3001/api/getUserTransactions?userID=${userID}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const userTransactionsData = await response.json();
+
+      // Sort transactions in ascending order based on a timestamp field
+      userTransactionsData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
       setUserTransactions(userTransactionsData);
     } catch (error) {
       console.error('Error fetching user transactions: ', error);
     }
   };
-  
+  // Render the userTransactions in your component
 
   return (
     <div className='tx'>

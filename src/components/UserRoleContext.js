@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, addDoc, getDoc, updateDoc, collection, query, where, getDocs, getFirestore } from 'firebase/firestore';
 import { data } from 'jquery';
 import { ToastContainer, toast } from "react-toastify";
+import { getSuggestedQuery } from '@testing-library/react';
 
 const FirebaseContext = createContext(null);
 
@@ -37,19 +38,550 @@ export const FirebaseProvider = ({ children }) => {
   const [referralCode, setReferralCode] = useState(null);
   const [hasPaid, setHasPaid] = useState(null);
   const [referredUsers, setReferredUsers] = useState(null);
-  const user = auth.currentUser;
+  const [deposit, setDeposit] = useState(null);
 
   const [task, setTask] = useState(null);
   const [completedTasks, setCompletedTasks] = useState([null]);
-  const isTaskCompleted = completedTasks.includes(task?.taskID);
+  const [isTaskPending, setIsTaskPending] = useState(null);
+  const [isTaskConfirmed, setIsTaskConfirmed] = useState(null);
+  const [isTaskActuallyConfirmed, setIsTaskActuallyConfirmed] = useState(null);
+  const [isTaskDeclined, setIsTaskDeclined] = useState(null);
+  // task check two
+  const [isTaskPendingTwo, setIsTaskPendingTwo] = useState(null);
+  const [isTaskConfirmedTwo, setIsTaskConfirmedTwo] = useState(null);
+  const [isTaskActuallyConfirmedTwo, setIsTaskActuallyConfirmedTwo] = useState(null);
+  const [isTaskDeclinedTwo, setIsTaskDeclinedTwo] = useState(null);
+  // task check three
+  const [isTaskPendingThree, setIsTaskPendingThree] = useState(null);
+  const [isTaskConfirmedThree, setIsTaskConfirmedThree] = useState(null);
+  const [isTaskActuallyConfirmedThree, setIsTaskActuallyConfirmedThree] = useState(null);
+  const [isTaskDeclinedThree, setIsTaskDeclinedThree] = useState(null);
+  // task check four
+  const [isTaskPendingFour, setIsTaskPendingFour] = useState(null);
+  const [isTaskConfirmedFour, setIsTaskConfirmedFour] = useState(null);
+  const [isTaskActuallyConfirmedFour, setIsTaskActuallyConfirmedFour] = useState(null);
+  const [isTaskDeclinedFour, setIsTaskDeclinedFour] = useState(null);
+  // task check five
+  const [isTaskPendingFive, setIsTaskPendingFive] = useState(null);
+  const [isTaskConfirmedFive, setIsTaskConfirmedFive] = useState(null);
+  const [isTaskActuallyConfirmedFive, setIsTaskActuallyConfirmedFive] = useState(null);
+  const [isTaskDeclinedFive, setIsTaskDeclinedFive] = useState(null);
+  
+  const user = auth.currentUser;
+
+  const [activeTaskOne, setActiveTaskOne] = useState(null);
+  const [activeTaskTwo, setActiveTaskTwo] = useState(null);
+  const [activeTaskThree, setActiveTaskThree] = useState(null);
+  const [activeTaskFour, setActiveTaskFour] = useState(null);
+  const [activeTaskFive, setActiveTaskFive] = useState(null);
+
+
+
+  useEffect(() => {
+    const fetchActiveTasks = async () => {
+      const taskIDs = ['activeTask_1', 'activeTask_2', 'activeTask_3', 'activeTask_4', 'activeTask_5'];
+
+      // 
+
+      for (let i = 0; i < taskIDs.length; i++) {
+        try {
+          const response = await fetch('http://localhost:3001/api/activeTasks', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ taskID: taskIDs[i] }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            switch (i) {
+              case 0:
+                setActiveTaskOne(data.activeTask);
+                break;
+              case 1:
+                setActiveTaskTwo(data.activeTask);
+                break;
+              case 2:
+                setActiveTaskThree(data.activeTask);
+                break;
+              case 3:
+                setActiveTaskFour(data.activeTask);
+                break;
+              case 4:
+                setActiveTaskFive(data.activeTask);
+                break;
+              default:
+                break;
+            }
+          } else {
+           
+          }
+        } catch (error) {
+          console.error('Error fetching active task:', error);
+        }
+      }
+    };
+
+    fetchActiveTasks();
+
+
+
+  }, [isTaskPending, isTaskConfirmed]);
+  
+  
+const createUser = async () => {
+  if(user && accountLimit !== null && totalReferrals !== null){
+    const userId = prev => prev + 1;
+    const payLoad = {
+      avatar: userImg,
+      email: userEmail,
+      name: userFullName,
+      userId: user.uid,
+      number: userPhoneNo,
+      deposit,
+      role: userRole,
+      accountLimit,
+      balance: userBalance || 0,
+      referralsBalance,
+      dailyDropBalance : dailyDropBalance || 7500,
+      isUserActive,
+      referralsCount,
+      totalReferrals,
+      referralCode,
+      hasPaid,
+      referredUsers,
+      adRevenue: 0,
+      firstLogin: true,
+    }
+    await fetch(`http://localhost:3001/api/addUser`,
+   {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Add any other headers as needed
+    },
+    body: JSON.stringify(payLoad),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      
+    })
+    .catch(error => {
+      console.error('Error:', error.message);
+    });
+  }
+   
+}
+
+const triggerTaskStatusNotification = () => {
+  if (activeTaskOne || activeTaskTwo || activeTaskThree || activeTaskFour || activeTaskFive) {
+    const updateBonus = async (reward) => {
+      if (updateBonus.hasBonusBeenAdded) {
+       
+        return;
+      }
+  
+      const userDetails = {
+        userId: userID,
+        addAmount: true,
+        amountToAdd: reward,
+        bonusAdded: false, // Add a flag to track bonus addition
+      };
+  
+      try {
+        const response = await fetch("http://localhost:3001/api/updateBonusAfterTask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Add any other headers as needed
+          },
+          body: JSON.stringify(userDetails),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+  
+        // Set the flag to true to indicate that the bonus has been added
+        updateBonus.hasBonusBeenAdded = true;
+        userDetails.bonusAdded = true;
+      } catch (error) {
+        console.error("Error:", error.message);
+      }
+      
+    };
+  
+    // Initialize the flag
+    updateBonus.hasBonusBeenAdded = false;
+  
+    // Rest of the code remains the same...
+    if (isTaskActuallyConfirmed || isTaskActuallyConfirmedTwo || isTaskActuallyConfirmedThree || isTaskActuallyConfirmedFour || isTaskActuallyConfirmedFive) {
+      // task one confirmed
+      if (isTaskActuallyConfirmed && activeTaskOne) {
+        updateBonus(activeTaskOne.reward);
+      } else {
+        
+      }
+  
+      // task two confirmed
+      if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
+        updateBonus(activeTaskTwo.reward);
+      } else {
+        
+      }
+  
+      // task three confirmed
+      if (isTaskActuallyConfirmedThree && activeTaskThree) {
+        updateBonus(activeTaskThree.reward);
+      } else {
+        
+      }
+  
+      // task four confirmed
+      if (isTaskActuallyConfirmedFour && activeTaskFour) {
+        updateBonus(activeTaskFour.reward);
+      } else {
+      
+      }
+  
+      // task five confirmed
+      if (isTaskActuallyConfirmedFive && activeTaskFive) {
+        updateBonus(activeTaskFive.reward);
+      } else {
+       
+      }
+  
+      const notify = () => {
+        toast.success("Task Completed!", {
+          toastId: 'toast-task-success'
+        });
+      };
+  
+      
+      notify();
+    }
+  
+    if (isTaskDeclined || isTaskDeclinedTwo || isTaskDeclinedThree || isTaskDeclinedFour || isTaskDeclinedFive) {
+      // Code to execute if at least one condition is true
+      const notify = () => {
+        toast.error("Task Failed!", {
+          toastId: 'toast-task-failed'
+        });
+      };
+      notify();
+    }
+  }
+  
+};
+
+
+const handleUpdateAccountLimit = async () => {
+  if (user) {
+    const userDetails = {
+      userId: user.uid,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3001/api/updateAccountLimit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Add any other headers as needed
+        },
+        body: JSON.stringify(userDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  }
+};
+      //  CHECKING THE PENDING AND COMPLETED STATUS OF EACH AND EVERY TASK
+      const checkTaskInPendingTasks = async (taskID, userID) => {
+        if(user){
+          const response = await fetch('http://localhost:3001/api/checkTaskInPendingTasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ taskID, userID: user.uid }),
+        });
+        const data = await response.json();
+        return data.isTaskInPendingTasks;
+        }
+      
+        
+      };
+
+      const checkTaskIsConfirmed = async (taskID, userID) => {
+        if(user){
+          const response = await fetch('http://localhost:3001/api/checkTaskIsConfirmed', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ taskID, userID: user.uid }),
+        });
+        const data = await response.json();
+        return data.isConfirmed;
+        }
+      
+        
+      };
+      
+      const checkDeclinedTasks = async (taskID, userID) => {
+        if(user){
+          const response = await fetch('http://localhost:3001/api/checkDeclinedTasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ taskID, userID: user.uid }),
+        });
+        const data = await response.json();
+        return data.isDeclined;
+        }
+      
+        
+      };
+
+      const checkTaskInCompletedTasks = async (taskID, userID) => {
+       if(user){
+        const response = await fetch('http://localhost:3001/api/checkTaskInCompletedTasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ taskID, userID: user.uid }),
+        });
+        const data = await response.json();
+        return data.isTaskConfirmed;
+       }
+      
+        
+      };
+
 
 
 
   useEffect(() => {
 
  
-    // Listen to changes in the user role
+
     onAuthStateChanged(auth, (user) =>{
+    // confirm user existence
+    if(user){
+      // getUserDetails
+      const userIdentify = user.uid;
+      const userUid = user.uid;
+
+const getUserDetail = async (userIdentify) => {
+   await fetch(`http://localhost:3001/api/userDetail/${userIdentify}`)
+   .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      return response.json();
+    })
+    .then(data => {
+      
+      setUserImg(data.avatar);
+      setUserEmail(data.email);
+      setUserFullName(data.name);
+      setUserID(data.userId);
+      setUserPhoneNo(data.number);
+      setUserRole(data.role);
+      setAccountLimit(data.accountLimit);
+     setReferralsBalance(data.referralsBalance);
+     setDailyDropBalance(data.dailyDropBalance);
+      setIsUserActive(data.isUserActive);
+      setReferralsCount(data.referralsCount);
+      setTotalReferrals(data.totalReferrals);
+      setReferralCode(data.referralCode);
+      setHasPaid(data.hasPaid);
+      setReferredUsers(data.referredUsers);
+      setAdRevenue(data.adRevenue);
+      setDeposit(data.deposit);
+
+      const newBalance = parseFloat(data.referralsBalance) + parseFloat(data.dailyDropBalance) + parseFloat(data.adRevenue);
+      const updateBalance = async () => {
+        if (user) {
+          const userDetails = {
+            userId: userIdentify,
+            balance: newBalance,
+            lastLogin: new Date(),
+          };
+      
+          try {
+            const response = await fetch("http://localhost:3001/api/updateBalance", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                // Add any other headers as needed
+              },
+              body: JSON.stringify(userDetails),
+            });
+      
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+      
+            const data = await response.json();
+          } catch (error) {
+            console.error("Error:", error.message);
+          }
+        }
+      };
+      
+      updateBalance();
+      setUserBalance(data.balance);
+    })
+    .catch(error => {
+      
+    });
+}
+
+
+const checkAllTaskStatus = async () => {
+  const tasks = ['activeTask_1', 'activeTask_2', 'activeTask_3', 'activeTask_4', 'activeTask_5'];
+
+  try {
+    const taskStatusPromises = tasks.map(async (task) => {
+      const isTaskPending = await checkTaskInPendingTasks(task, userID);
+      const isTaskConfirmed = await checkTaskInCompletedTasks(task, userID);
+      const isTaskDeclined = await checkDeclinedTasks(task, userID);
+      const isTaskReallyConfirmed = await checkTaskIsConfirmed(task, userID);
+
+      return {
+        task,
+        isTaskPending,
+        isTaskConfirmed,
+        isTaskDeclined,
+        isTaskReallyConfirmed,
+      };
+    });
+
+    const taskStatusResults = await Promise.all(taskStatusPromises);
+
+    // Now you have an array of task statuses, you can update state or handle them as needed
+    taskStatusResults.forEach((result) => {
+      const {
+        task,
+        isTaskPending,
+        isTaskConfirmed,
+        isTaskDeclined,
+        isTaskReallyConfirmed,
+      } = result;
+
+      // Update state or handle the task status as needed
+      switch (task) {
+        case 'activeTask_1':
+          setIsTaskActuallyConfirmed(isTaskReallyConfirmed);
+          setIsTaskDeclined(isTaskDeclined);
+          setIsTaskPending(isTaskPending);
+          setIsTaskConfirmed(isTaskConfirmed);
+          break;
+        case 'activeTask_2':
+          setIsTaskActuallyConfirmedTwo(isTaskReallyConfirmed);
+          setIsTaskDeclinedTwo(isTaskDeclined);
+          setIsTaskPendingTwo(isTaskPending);
+          setIsTaskConfirmedTwo(isTaskConfirmed);
+          // Repeat for other tasks
+          break;
+          // for three
+          case 'activeTask_3':
+          setIsTaskActuallyConfirmedThree(isTaskReallyConfirmed);
+          setIsTaskDeclinedThree(isTaskDeclined);
+          setIsTaskPendingThree(isTaskPending);
+          setIsTaskConfirmedThree(isTaskConfirmed);
+          break;
+          // for four
+          case 'activeTask_4':
+          setIsTaskActuallyConfirmedFour(isTaskReallyConfirmed);
+          setIsTaskDeclinedFour(isTaskDeclined);
+          setIsTaskPendingFour(isTaskPending);
+          setIsTaskConfirmedFour(isTaskConfirmed);
+          break;
+          // for five
+          case 'activeTask_5':
+          setIsTaskActuallyConfirmedFive(isTaskReallyConfirmed);
+          setIsTaskDeclinedFive(isTaskDeclined);
+          setIsTaskPendingFive(isTaskPending);
+          setIsTaskConfirmedFive(isTaskConfirmed);
+          break;
+        // Repeat for other tasks
+        default:
+          break;
+      }
+    });
+  } catch (error) {
+    console.error('Error checking task status:', error);
+  }
+};
+
+
+
+    const refreshCompletedTasks = async (userUid) => {
+      if (user) {
+        try {
+          const response = await fetch(`http://localhost:3001/api/fetchCompletedTasks`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userUid }),
+          });
+      
+    
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+    
+          const completedTaskIds = await response.json();
+          setCompletedTasks(completedTaskIds);
+        } catch (error) {
+          
+        }
+      }
+       else{
+        
+       }
+     };
+     
+      // 
+      const userIdentification = user.uid
+      const doesUserExist = async () => {
+      await fetch(`http://localhost:3001/api/userExists/${userIdentification}`)
+       .then(response => {
+         if (!response.ok) {
+           throw new Error(`HTTP error! Status: ${response.status}`);
+         }
+         // setUsers(response)
+         // console.log(response);
+         return response.json();
+       })
+       .then(data => {
+         
+         if(data.status !== true){
+          
+              // Listen to changes in the user role
+    
       
       if(user !== null){
         const userRoleRef = ref(realTimeDb, `users/${user.uid}`); // Replace with your Firebase database path
@@ -68,6 +600,8 @@ export const FirebaseProvider = ({ children }) => {
           setUserID(ID);
           setUserPhoneNo(phoneNo);
           setUserRole(role);
+
+          
       });
 
           // fetching user balance
@@ -103,7 +637,7 @@ export const FirebaseProvider = ({ children }) => {
           setAccountLimit(userBalanceData.AccountLimit);
         }
       } catch (error) {
-        console.error('Error fetching user balance:', error);
+        // 
       }
     };
 
@@ -164,7 +698,7 @@ export const FirebaseProvider = ({ children }) => {
   
 
         } catch (error) {
-          console.error('Error updating account limit:', error.message);
+          // 
         }
       }
       else{
@@ -186,7 +720,7 @@ export const FirebaseProvider = ({ children }) => {
           }
         }
         catch(error){
-          console.error('Error updating account limit:', error.message);
+          // 
         }
       }
     };
@@ -199,9 +733,6 @@ export const FirebaseProvider = ({ children }) => {
       if(userSnapshot !== null){
         // record last login
       await updateDoc(currentUserRef, { lastLogin: new Date(),});
-      if(!userSnapshot.data().adRevenue){
-        await updateDoc(currentUserRef, { adRevenue: 0,});
-      }
       // Update user balance in the context
       setAccountLimit(userSnapshot.data().AccountLimit);
       setReferralsBalance(userSnapshot.data().referralsBalance);
@@ -213,12 +744,13 @@ export const FirebaseProvider = ({ children }) => {
       setHasPaid(userSnapshot.data().hasPaid);
       setReferredUsers(userSnapshot.data().referredUsers);
       setAdRevenue(userSnapshot.data().adRevenue);
+      setDeposit(userSnapshot.data().deposit);
       }
 
 
       }
       catch(error){
-        console.log('Error updating current account limit:', error.message)
+        // 
       }
     }
 
@@ -226,15 +758,47 @@ export const FirebaseProvider = ({ children }) => {
     updateCurrentAccountLimit();
     fetchUserBalance(); // Assuming fetchUserBalance is defined somewhere in your code
     updateAccountLimit();
+    createUser();    
+    getUserDetail(userIdentify);
+    checkAllTaskStatus();
+    triggerTaskStatusNotification();
+    refreshCompletedTasks(userUid);
+    handleUpdateAccountLimit();
     
 
       }
-    }) 
-  }, [userBalance, accountLimit, isTaskCompleted, userID, task]);
+    
+         }
+         else{
+          // 
+          
+          onAuthStateChanged(auth, (user) =>{
+            // confirm user existence
+            if(user){
+              getUserDetail(userIdentify);
+              checkAllTaskStatus();
+              triggerTaskStatusNotification();
+              refreshCompletedTasks(userUid);
+              handleUpdateAccountLimit();
+            }
+          }) 
+         }
+       })
+       .catch(error => {
+         
+       });
+   }
+    doesUserExist(userIdentification);
+   
+  }
+}) 
+    
+  }, [userBalance, accountLimit, activeTaskFive, activeTaskFour, activeTaskOne, activeTaskThree, activeTaskTwo, checkDeclinedTasks, checkTaskInCompletedTasks, checkTaskInPendingTasks, checkTaskIsConfirmed, createUser, handleUpdateAccountLimit, triggerTaskStatusNotification, userID]);
 
   return (
-    <FirebaseContext.Provider value={{userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue }}>
+    <FirebaseContext.Provider value={{userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, isTaskConfirmed, setIsTaskConfirmed, isTaskPending, setIsTaskPending, completedTasks, setCompletedTasks, isTaskPendingTwo, setIsTaskPendingTwo, isTaskConfirmedTwo, setIsTaskConfirmedTwo,  isTaskPendingThree, setIsTaskPendingThree, isTaskConfirmedThree, setIsTaskConfirmedThree, isTaskPendingFour, setIsTaskPendingFour, isTaskConfirmedFour, setIsTaskConfirmedFour, isTaskPendingFive, setIsTaskPendingFive, isTaskConfirmedFive, setIsTaskConfirmedFive, isTaskDeclined, setIsTaskDeclined, isTaskDeclinedTwo, setIsTaskDeclinedTwo, isTaskDeclinedThree, setIsTaskDeclinedThree, isTaskDeclinedFour, setIsTaskDeclinedFour, isTaskDeclinedFive, setIsTaskDeclinedFive, isTaskActuallyConfirmed, setIsTaskActuallyConfirmed, isTaskActuallyConfirmedTwo, setIsTaskActuallyConfirmedTwo, isTaskActuallyConfirmedThree, setIsTaskActuallyConfirmedThree, isTaskActuallyConfirmedFour, setIsTaskActuallyConfirmedFour, isTaskActuallyConfirmedFive, setIsTaskActuallyConfirmedFive, activeTaskOne, setActiveTaskOne, activeTaskTwo, setActiveTaskTwo, activeTaskThree, setActiveTaskThree, activeTaskFour, setActiveTaskFour, activeTaskFive, setActiveTaskFive}}>
       {children}
+      
       <ToastContainer />
     </FirebaseContext.Provider>
   );

@@ -56,6 +56,12 @@
     border-radius: 10px;
   }
   
+  /* Add a disabled class to disable pointer events */
+.disabled {
+  pointer-events: none;
+  /* Add any additional styling for the disabled state */
+}
+
 /* Add this to your styles or in a separate stylesheet */
 
 .modal {
