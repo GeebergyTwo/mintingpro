@@ -808,15 +808,15 @@ router.get('/getTasks', async (req, res) => {
 });
 // Task acceptance endpoint
 router.post('/acceptTask', async (req, res) => {
-  const {taskId, description} = req.body;
+  const {taskId, description, userId} = req.body;
 
   try {
-    const taskExists = await Task.findOne({ taskId, description });
+    const taskExists = await Task.findOne({ taskId, description, userId });
     // Implement logic to update the task status to 'confirmed' in your database
     // ...
     if(taskExists){
       const user = await Task.findOneAndUpdate(
-        { description, taskId },
+        { description, taskId, userId },
         { confirmed: true }
       );
   
@@ -835,15 +835,15 @@ router.post('/acceptTask', async (req, res) => {
 
 // Task decline endpoint
 router.post('/declineTask/', async (req, res) => {
-  const {taskId, description} = req.body;
+  const {taskId, description, userId} = req.body;
 
   try {
-    const taskExists = await Task.findOne({ taskId, description });
+    const taskExists = await Task.findOne({ taskId, description, userId });
     // Implement logic to update the task status to 'confirmed' in your database
     // ...
     if(taskExists){
       const user = await Task.findOneAndUpdate(
-        { description, taskId },
+        { description, taskId, userId },
         { declined: true }
       );
   
@@ -859,8 +859,8 @@ router.post('/declineTask/', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
-// 
-// 
+// // 
+
 router.delete("/userDetail", async (request, response) => { 
   try {
     const users = await User.findByIdAndDelete('id');
