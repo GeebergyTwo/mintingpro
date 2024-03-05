@@ -290,7 +290,8 @@ router.post("/updateInfoAfterPay", async (request, response) => {
               isUserActive: true,
               dailyDropBalance,
               referralRedeemed: true,
-              referralsBalance } }
+              referralsBalance,
+              hasPaid: true,} }
           );
           response.send({"status": "successful", "referrerData" : doesDataExist})
       }
