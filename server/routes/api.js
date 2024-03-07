@@ -881,7 +881,8 @@ router.post('/acceptTask', async (req, res) => {
     if(taskExists){
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
-        { confirmed: true }
+        { confirmed: true,
+          declined: false}
       );
   
       // Send a response indicating success
@@ -908,7 +909,8 @@ router.post('/declineTask/', async (req, res) => {
     if(taskExists){
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
-        { declined: true }
+        { declined: true,
+          confirmed: false}
       );
   
       // Send a response indicating success
