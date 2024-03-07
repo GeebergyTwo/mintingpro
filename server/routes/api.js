@@ -311,36 +311,100 @@ router.post("/updateInfoAfterPay", async (request, response) => {
 });
 
 // UPDATE BALANCE AFTER TASK
-router.post("/updateBonusAfterTask", async (request, response) => {
-  const userDetails = new User(request.body);
-  const userId = userDetails.userId;
-  const addAmount = userDetails.addAmount;
-  const amountToAdd = userDetails.amountToAdd;
- 
-  try {
-    const doesDataExist = await User.findOne({ userId: userId});
+const updateBonus = async (userId, reward) => {
+  // Your bonus update logic here...
+  const doesDataExist = await User.findOne({ userId: userId});
   
-        if (doesDataExist) {
-          await User.updateOne(
-            { userId: userId },
-            { $inc: {
-                referralsBalance: amountToAdd, // Increment by 1 or change as needed
-              },
-            }
-          );
-
-          response.send({"status": "successful", "referrerData" : doesDataExist})
-         
-        }
-        
-      else{
-        response.send({"status": "failed",})
+  if (doesDataExist) {
+    await User.updateOne(
+      { userId: userId },
+      { $inc: {
+          referralsBalance: reward, // Increment by 1 or change as needed
+        },
       }
-      
-      
-    
-  } catch (error) {
-    response.status(500).send(error);
+    );
+         
+  }
+  // Simulate a response for testing
+  return { success: true };
+};
+
+router.post('/updateBonusAfterTask', async (req, res) => {
+  const {
+    userID,
+    activeTaskOne,
+    activeTaskTwo,
+    activeTaskThree,
+    activeTaskFour,
+    activeTaskFive,
+    isTaskActuallyConfirmed,
+    isTaskActuallyConfirmedTwo,
+    isTaskActuallyConfirmedThree,
+    isTaskActuallyConfirmedFour,
+    isTaskActuallyConfirmedFive,
+    isTaskDeclined,
+    isTaskDeclinedTwo,
+    isTaskDeclinedThree,
+    isTaskDeclinedFour,
+    isTaskDeclinedFive,
+  } = req.body;
+
+  if (
+    (activeTaskOne ||
+      activeTaskTwo ||
+      activeTaskThree ||
+      activeTaskFour ||
+      activeTaskFive) &&
+    (isTaskActuallyConfirmed ||
+      isTaskActuallyConfirmedTwo ||
+      isTaskActuallyConfirmedThree ||
+      isTaskActuallyConfirmedFour ||
+      isTaskActuallyConfirmedFive)
+  ) {
+    try {
+      // task one confirmed
+      if (isTaskActuallyConfirmed && activeTaskOne) {
+        await updateBonus(userID, activeTaskOne.reward);
+      }
+
+      // task two confirmed
+      if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
+        await updateBonus(userID, activeTaskTwo.reward);
+      }
+
+      // task three confirmed
+      if (isTaskActuallyConfirmedThree && activeTaskThree) {
+        await updateBonus(userID, activeTaskThree.reward);
+      }
+
+      // task four confirmed
+      if (isTaskActuallyConfirmedFour && activeTaskFour) {
+        await updateBonus(userID, activeTaskFour.reward);
+      }
+
+      // task five confirmed
+      if (isTaskActuallyConfirmedFive && activeTaskFive) {
+        await updateBonus(userID, activeTaskFive.reward);
+      }
+
+      // Notify success
+      res.json({ success: true, message: 'Task Completed!' });
+    } catch (error) {
+      console.error('Error updating bonus:', error.message);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  } else if (
+    isTaskDeclined ||
+    isTaskDeclinedTwo ||
+    isTaskDeclinedThree ||
+    isTaskDeclinedFour ||
+    isTaskDeclinedFive
+  ) {
+    // Notify failure
+    res.json({ success: false, message: 'Task Failed!' });
+  } else {
+    // No conditions met
+    res.json({ success: false, message: 'No matching conditions' });
   }
 });
 //DEBIT USER AFTER WITHDRAWAL
