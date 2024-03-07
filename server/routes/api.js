@@ -348,7 +348,7 @@ router.post('/updateBonusAfterTask', async (req, res) => {
     isTaskDeclinedFour,
     isTaskDeclinedFive,
   } = req.body;
-
+  console.log(`this is the user id: ${userID} and activeTaskFive: ${ activeTaskFive}`);
   if (
     (activeTaskOne ||
       activeTaskTwo ||
