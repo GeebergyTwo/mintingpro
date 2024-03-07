@@ -690,6 +690,79 @@ router.post('/checkTaskIsConfirmed', async (req, res) => {
   }
 });
 
+
+// DECLINED TASK CHECK
+router.post('/checkDeclinedTasks', async (req, res) => {
+  const { taskID, userID } = req.body;
+
+  try {
+    // Assume you have a "pendingTasks" collection with a schema similar to "activeTasks"
+    const pendingTask = await Task.findOne({ taskId: taskID, userId: userID });
+
+    if (pendingTask) {
+      if (pendingTask.declined) {
+        // Move task to completed array
+        await Task.deleteOne({ taskId: taskID, userId: userID });
+
+
+        res.json({ isTaskInPendingTasks: true, isDeclined: true});
+      } else {
+        res.json({ isTaskInPendingTasks: true, isDeclined: false });
+      }
+    } else {
+      res.json({ isTaskInPendingTasks: false, isConfirmed: false });
+
+    }
+  } catch (error) {
+    console.error('Error checking pending tasks:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// CHECK IF TASKS EXIST IN COMPLETED TASKS ARRAY
+router.post('/checkTaskInCompletedTasks', async (req, res) => {
+  const { taskID, userID } = req.body;
+
+  try {
+    const user = await User.findOne({ userId: userID });
+
+    if (user && user.completedTasks && user.completedTasks.includes(taskID)) {
+      // Task is confirmed in completedTasks array
+      res.json({ isTaskConfirmed: true });
+    } else {
+      // Task is not confirmed
+      res.json({ isTaskConfirmed: false });
+    }
+  } catch (error) {
+    console.error('Error checking completed tasks:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// COMPLETE TASK
+// Define a route to mark a task as completed
+router.post('/markTaskAsCompleted', async (req, res) => {
+  const { userUid, taskID } = req.body;
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { userId: userUid },
+      { $addToSet: { completedTasks: taskID } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      console.error('User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: `Task ${taskID} marked as completed for user ${userUid}` });
+  } catch (error) {
+    console.error('Error marking task as completed:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 const updateBonus = async (userId, reward, taskID) => {
   // Your bonus update logic here...
   const doesDataExist = await User.findOne({ userId: userId});
@@ -786,77 +859,6 @@ router.post('/updateBonusAfterTask', async (req, res) => {
   } else {
     // No conditions met
     res.json({ success: false, message: 'No matching conditions' });
-  }
-});
-// DECLINED TASK CHECK
-router.post('/checkDeclinedTasks', async (req, res) => {
-  const { taskID, userID } = req.body;
-
-  try {
-    // Assume you have a "pendingTasks" collection with a schema similar to "activeTasks"
-    const pendingTask = await Task.findOne({ taskId: taskID, userId: userID });
-
-    if (pendingTask) {
-      if (pendingTask.declined) {
-        // Move task to completed array
-        await Task.deleteOne({ taskId: taskID, userId: userID });
-
-
-        res.json({ isTaskInPendingTasks: true, isDeclined: true});
-      } else {
-        res.json({ isTaskInPendingTasks: true, isDeclined: false });
-      }
-    } else {
-      res.json({ isTaskInPendingTasks: false, isConfirmed: false });
-
-    }
-  } catch (error) {
-    console.error('Error checking pending tasks:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// CHECK IF TASKS EXIST IN COMPLETED TASKS ARRAY
-router.post('/checkTaskInCompletedTasks', async (req, res) => {
-  const { taskID, userID } = req.body;
-
-  try {
-    const user = await User.findOne({ userId: userID });
-
-    if (user && user.completedTasks && user.completedTasks.includes(taskID)) {
-      // Task is confirmed in completedTasks array
-      res.json({ isTaskConfirmed: true });
-    } else {
-      // Task is not confirmed
-      res.json({ isTaskConfirmed: false });
-    }
-  } catch (error) {
-    console.error('Error checking completed tasks:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// COMPLETE TASK
-// Define a route to mark a task as completed
-router.post('/markTaskAsCompleted', async (req, res) => {
-  const { userUid, taskID } = req.body;
-
-  try {
-    const updatedUser = await User.findOneAndUpdate(
-      { userId: userUid },
-      { $addToSet: { completedTasks: taskID } },
-      { new: true }
-    );
-
-    if (!updatedUser) {
-      console.error('User not found');
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.status(200).json({ message: `Task ${taskID} marked as completed for user ${userUid}` });
-  } catch (error) {
-    console.error('Error marking task as completed:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
