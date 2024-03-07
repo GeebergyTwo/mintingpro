@@ -310,103 +310,6 @@ router.post("/updateInfoAfterPay", async (request, response) => {
   }
 });
 
-// UPDATE BALANCE AFTER TASK
-const updateBonus = async (userId, reward) => {
-  // Your bonus update logic here...
-  const doesDataExist = await User.findOne({ userId: userId});
-  
-  if (doesDataExist) {
-    await User.updateOne(
-      { userId: userId },
-      { $inc: {
-          referralsBalance: reward, // Increment by 1 or change as needed
-        },
-      }
-    );
-         
-  }
-  // Simulate a response for testing
-  return { success: true };
-};
-
-router.post('/updateBonusAfterTask', async (req, res) => {
-  const {
-    userID,
-    activeTaskOne,
-    activeTaskTwo,
-    activeTaskThree,
-    activeTaskFour,
-    activeTaskFive,
-    isTaskActuallyConfirmed,
-    isTaskActuallyConfirmedTwo,
-    isTaskActuallyConfirmedThree,
-    isTaskActuallyConfirmedFour,
-    isTaskActuallyConfirmedFive,
-    isTaskDeclined,
-    isTaskDeclinedTwo,
-    isTaskDeclinedThree,
-    isTaskDeclinedFour,
-    isTaskDeclinedFive,
-  } = req.body;
-  console.log(`this is the user id: ${userID} and activeTaskFive: ${JSON.stringify(activeTaskFive)}`);
-  if (
-    (activeTaskOne ||
-      activeTaskTwo ||
-      activeTaskThree ||
-      activeTaskFour ||
-      activeTaskFive) &&
-    (isTaskActuallyConfirmed ||
-      isTaskActuallyConfirmedTwo ||
-      isTaskActuallyConfirmedThree ||
-      isTaskActuallyConfirmedFour ||
-      isTaskActuallyConfirmedFive)
-  ) {
-    try {
-      // task one confirmed
-      if (isTaskActuallyConfirmed && activeTaskOne) {
-        await updateBonus(userID, activeTaskOne.reward);
-      }
-
-      // task two confirmed
-      if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
-        await updateBonus(userID, activeTaskTwo.reward);
-      }
-
-      // task three confirmed
-      if (isTaskActuallyConfirmedThree && activeTaskThree) {
-        await updateBonus(userID, activeTaskThree.reward);
-      }
-
-      // task four confirmed
-      if (isTaskActuallyConfirmedFour && activeTaskFour) {
-        await updateBonus(userID, activeTaskFour.reward);
-      }
-
-      // task five confirmed
-      if (isTaskActuallyConfirmedFive && activeTaskFive) {
-        await updateBonus(userID, activeTaskFive.reward);
-      }
-
-      // Notify success
-      res.json({ success: true, message: 'Task Completed!' });
-    } catch (error) {
-      console.error('Error updating bonus:', error.message);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
-  } else if (
-    isTaskDeclined ||
-    isTaskDeclinedTwo ||
-    isTaskDeclinedThree ||
-    isTaskDeclinedFour ||
-    isTaskDeclinedFive
-  ) {
-    // Notify failure
-    res.json({ success: false, message: 'Task Failed!' });
-  } else {
-    // No conditions met
-    res.json({ success: false, message: 'No matching conditions' });
-  }
-});
 //DEBIT USER AFTER WITHDRAWAL
 // updating user details after withdrawal
 // update user data
@@ -763,7 +666,6 @@ router.post('/checkTaskIsConfirmed', async (req, res) => {
     if (pendingTask) {
       if (pendingTask.confirmed) {
         // Move task to completed array
-        await Task.deleteOne({ taskId: taskID, userId: userID });
 
         // Assume you have a "users" collection with a schema similar to your previous examples
         const user = await User.findOneAndUpdate(
@@ -785,6 +687,105 @@ router.post('/checkTaskIsConfirmed', async (req, res) => {
   } catch (error) {
     console.error('Error checking pending tasks:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+const updateBonus = async (userId, reward, taskID) => {
+  // Your bonus update logic here...
+  const doesDataExist = await User.findOne({ userId: userId});
+  
+  if (doesDataExist) {
+    await User.updateOne(
+      { userId: userId },
+      { $inc: {
+          referralsBalance: reward, // Increment by 1 or change as needed
+        },
+      }
+    );
+
+    await Task.deleteOne({ userId, taskId: taskID });
+         
+  }
+  // Simulate a response for testing
+  return { success: true };
+};
+
+router.post('/updateBonusAfterTask', async (req, res) => {
+  const {
+    userID,
+    activeTaskOne,
+    activeTaskTwo,
+    activeTaskThree,
+    activeTaskFour,
+    activeTaskFive,
+    isTaskActuallyConfirmed,
+    isTaskActuallyConfirmedTwo,
+    isTaskActuallyConfirmedThree,
+    isTaskActuallyConfirmedFour,
+    isTaskActuallyConfirmedFive,
+    isTaskDeclined,
+    isTaskDeclinedTwo,
+    isTaskDeclinedThree,
+    isTaskDeclinedFour,
+    isTaskDeclinedFive,
+  } = req.body;
+
+  if (
+    (activeTaskOne ||
+      activeTaskTwo ||
+      activeTaskThree ||
+      activeTaskFour ||
+      activeTaskFive) &&
+    (isTaskActuallyConfirmed ||
+      isTaskActuallyConfirmedTwo ||
+      isTaskActuallyConfirmedThree ||
+      isTaskActuallyConfirmedFour ||
+      isTaskActuallyConfirmedFive)
+  ) {
+    try {
+      // task one confirmed
+      if (isTaskActuallyConfirmed && activeTaskOne) {
+        await updateBonus(userID, activeTaskOne.reward, activeTaskOne.taskID);
+      }
+
+      // task two confirmed
+      if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
+        await updateBonus(userID, activeTaskTwo.reward, activeTaskTwo.taskID);
+      }
+
+      // task three confirmed
+      if (isTaskActuallyConfirmedThree && activeTaskThree) {
+        await updateBonus(userID, activeTaskThree.reward, activeTaskThree.taskID);
+      }
+
+      // task four confirmed
+      if (isTaskActuallyConfirmedFour && activeTaskFour) {
+        await updateBonus(userID, activeTaskFour.reward, activeTaskFour.taskID);
+      }
+
+      // task five confirmed
+      if (isTaskActuallyConfirmedFive && activeTaskFive) {
+        await updateBonus(userID, activeTaskFive.reward, activeTaskFive.taskID);
+      }
+
+      // Notify success
+      res.json({ success: true, message: 'Task Completed!' });
+    } catch (error) {
+      console.error('Error updating bonus:', error.message);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  } else if (
+    isTaskDeclined ||
+    isTaskDeclinedTwo ||
+    isTaskDeclinedThree ||
+    isTaskDeclinedFour ||
+    isTaskDeclinedFive
+  ) {
+    // Notify failure
+    res.json({ success: false, message: 'Task Failed!' });
+  } else {
+    // No conditions met
+    res.json({ success: false, message: 'No matching conditions' });
   }
 });
 // DECLINED TASK CHECK
@@ -882,7 +883,7 @@ router.post('/acceptTask', async (req, res) => {
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
         { confirmed: true,
-          declined: false}
+          declined: false }
       );
   
       // Send a response indicating success
@@ -910,7 +911,7 @@ router.post('/declineTask/', async (req, res) => {
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
         { declined: true,
-          confirmed: false}
+          confirmed: false }
       );
   
       // Send a response indicating success
@@ -925,8 +926,8 @@ router.post('/declineTask/', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
-// // 
-
+// 
+// 
 router.delete("/userDetail", async (request, response) => { 
   try {
     const users = await User.findByIdAndDelete('id');
