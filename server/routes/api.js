@@ -885,7 +885,8 @@ router.post('/acceptTask', async (req, res) => {
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
         { confirmed: true,
-          declined: false }
+          declined: false,
+          pending: false}
       );
   
       // Send a response indicating success
@@ -913,7 +914,8 @@ router.post('/declineTask/', async (req, res) => {
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
         { declined: true,
-          confirmed: false }
+          confirmed: false,
+          pending: false}
       );
   
       // Send a response indicating success
