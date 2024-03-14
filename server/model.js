@@ -26,6 +26,7 @@ const schema = new mongoose.Schema({
     completedTasks: [{ type: String }], // Array of task IDs
     firstLogin: { type: Boolean, default: true },
     amountToAdd: Number,
+    adsClicked: Number,
   });
 
  
