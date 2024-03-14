@@ -295,7 +295,7 @@ router.post("/updateInfoAfterPay", async (request, response) => {
               dailyDropBalance,
               referralRedeemed: true,
               referralsBalance,
-              hasPaid: true,} }
+              hasPaid: true, } }
           );
           response.send({"status": "successful", "referrerData" : doesDataExist})
       }
@@ -313,6 +313,11 @@ router.post("/updateInfoAfterPay", async (request, response) => {
     response.status(500).send(error);
   }
 });
+
+// UPDATE BALANCE AFTER TASK
+
+// 
+
 
 //DEBIT USER AFTER WITHDRAWAL
 // updating user details after withdrawal
@@ -338,6 +343,42 @@ router.post("/updateOnDebit", async (request, response) => {
               referralsBalance,
               dailyDropBalance,
               accountLimit} }
+          );
+        
+    
+        response.send({"status": "successful", "referrerData" : doesDataExist})
+      }
+      else{
+        response.send({"status": "failed",})
+      }
+      
+    } catch (error) {
+      response.send(error);
+    }
+    
+  } catch (error) {
+    response.status(500).send(error);
+  }
+});
+
+// UPDATE ON ADCLICK
+router.post("/updateOnClick", async (request, response) => {
+  const userDetails = new User(request.body);
+  const userId = userDetails.userId;
+  const adRevenue = userDetails.adRevenue;
+ 
+  try {
+    const doesDataExist = await User.findOne({ userId: userId});
+    try {
+   
+  
+      // Example 2: Incrementing referredUsers field
+      if(doesDataExist){
+          await User.updateOne(
+            { userId: userId },
+            { $set: { adRevenue,
+              },
+              $inc: { adsClicked: 1 } }
           );
         
     
@@ -767,6 +808,7 @@ router.post('/markTaskAsCompleted', async (req, res) => {
   }
 });
 
+
 const updateBonus = async (userId, reward, taskID) => {
   // Your bonus update logic here...
   const doesDataExist = await User.findOne({ userId: userId});
@@ -865,7 +907,6 @@ router.post('/updateBonusAfterTask', async (req, res) => {
     res.json({ success: false, message: 'No matching conditions' });
   }
 });
-
 // APPROVE TASK UI BACKEND
 // fetch tasks
 // Fetch all tasks
@@ -889,8 +930,7 @@ router.post('/acceptTask', async (req, res) => {
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
         { confirmed: true,
-          declined: false,
-          pending: false}
+          declined: false }
       );
   
       // Send a response indicating success
@@ -918,8 +958,7 @@ router.post('/declineTask/', async (req, res) => {
       const user = await Task.findOneAndUpdate(
         { description, taskId, userId },
         { declined: true,
-          confirmed: false,
-          pending: false}
+          confirmed: false }
       );
   
       // Send a response indicating success
