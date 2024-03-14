@@ -237,6 +237,8 @@ router.post("/updateBalance", async (request, response) => {
   const newBalance = userDetails.balance;
   const dailyDropBalance = userDetails.dailyDropBalance;
   const accountLimit = userDetails.accountLimit;
+  const lastLogin = userDetails.lastLogin;
+  const firstLogin = userDetails.firstLogin;
  
   try {
     const doesDataExist = await User.findOne({ userId: userId});
@@ -250,7 +252,9 @@ router.post("/updateBalance", async (request, response) => {
           { userId: userId },
           { $set: { balance: newBalance,
           dailyDropBalance,
-          accountLimit } }
+          accountLimit,
+          lastLogin,
+          firstLogin } }
         );
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
