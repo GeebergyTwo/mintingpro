@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../model');
 const { MongoClient } = require('mongodb');
+const cron = require('node-cron');
 
 const uri = "mongodb+srv://TheGilo:Gilo1411@dripdashcluster.khr3xz4.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDashCluster";
 
@@ -82,6 +83,71 @@ router.post("/addUser", async (request, response) => {
     response.status(500).send(error);
   }
 });
+// reset and set leadderboard
+// Schedule task to run at 00:00 on Monday (start of the week)
+cron.schedule('0 0 * * 1', async () => {
+  try {
+      // Reset weeklyEarnings and adsClicked for all users
+      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0 } });
+      console.log('Weekly reset completed successfully.');
+  } catch (err) {
+      console.error('Error resetting weekly data:', err);
+  }
+});
+
+// Endpoint to get top earners for the current week
+router.get('/top-earners', async (req, res) => {
+  try {
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      const endOfWeek = new Date();
+      endOfWeek.setHours(23, 59, 59, 999);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      const topEarners = await User.find({
+          lastLogin: {
+              $gte: startOfWeek,
+              $lte: endOfWeek
+          }
+      }).sort({ weeklyEarnings: -1 }).limit(10);
+
+      res.json(topEarners);
+  } catch (err) {
+      console.error('Error fetching top earners:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint to get top ad clickers for the current week
+router.get('/top-ad-clickers', async (req, res) => {
+  try {
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      const endOfWeek = new Date();
+      endOfWeek.setHours(23, 59, 59, 999);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      const topAdClickers = await User.find({
+          lastLogin: {
+              $gte: startOfWeek,
+              $lte: endOfWeek
+          }
+      }).sort({ adsClicked: -1 }).limit(10);
+
+      res.json(topAdClickers);
+  } catch (err) {
+      console.error('Error fetching top ad clickers:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// end of leaderboard
+
 
 // update account limit
 router.post('/updateAccountLimit', async (req, res) => {
@@ -239,6 +305,7 @@ router.post("/updateBalance", async (request, response) => {
   const accountLimit = userDetails.accountLimit;
   const lastLogin = userDetails.lastLogin;
   const firstLogin = userDetails.firstLogin;
+  const weeklyEarnings = userDetails.weeklyEarnings;
  
   try {
     const doesDataExist = await User.findOne({ userId: userId});
@@ -254,7 +321,8 @@ router.post("/updateBalance", async (request, response) => {
           dailyDropBalance,
           accountLimit,
           lastLogin,
-          firstLogin } }
+          firstLogin,
+          weeklyEarnings } }
         );
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
