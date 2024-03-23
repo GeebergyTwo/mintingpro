@@ -27,6 +27,7 @@ const schema = new mongoose.Schema({
     firstLogin: { type: Boolean, default: true },
     amountToAdd: Number,
     adsClicked: Number,
+    weeklyEarnings: Number,
   });
 
  
