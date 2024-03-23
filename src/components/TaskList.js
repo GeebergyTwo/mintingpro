@@ -14,7 +14,7 @@ const TaskList = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/getTasks');
+      const response = await fetch('https://dripdash.onrender.com/api/getTasks');
       const tasks = await response.json();
       setTasks(tasks);
     } catch (error) {
@@ -22,14 +22,14 @@ const TaskList = () => {
     }
   };
 
-  const acceptTask = async (taskId, description) => {
+  const acceptTask = async (taskId, description, userId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/acceptTask`, {
+      const response = await fetch(`https://dripdash.onrender.com/api/acceptTask`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ taskId, description }),
+        body: JSON.stringify({ taskId, description, userId }),
       });
 
       const result = await response.json();
@@ -46,14 +46,14 @@ const TaskList = () => {
     }
   };
 
-  const declineTask = async (taskId, description) => {
+  const declineTask = async (taskId, description, userId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/declineTask`, {
+      const response = await fetch(`https://dripdash.onrender.com/api/declineTask`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ taskId, description }),
+        body: JSON.stringify({ taskId, description, userId }),
       });
 
       const result = await response.json();
@@ -77,11 +77,12 @@ const TaskList = () => {
     <div className="custom-task-list d-block">
       {tasks.map((task) => (
         <div key={task.id} className="custom-task-card">
+          <p className={`${task.confirmed ? 'text-success' : task.declined ? 'text-danger' : ''}`}>{task.confirmed ? (<>Marked as Accepted</>) : task.declined ?(<>Marked as Declined</>) : (<>Not Marked</>)}</p>
           <img src={task.imageSrc} alt={`Task ${task.id}`} className="custom-task-image" />
           <p className="custom-task-description">{task.description}</p>
           <div className="custom-button-container">
-            <button className='btn btn-success' onClick={() => acceptTask(task.taskId, task.description)}>Accept</button>
-            <button className='btn btn-danger' onClick={() => declineTask(task.taskId, task.description)}>Decline</button>
+            <button className='btn btn-success' onClick={() => acceptTask(task.taskId, task.description, task.userId)}>Accept</button>
+            <button className='btn btn-danger' onClick={() => declineTask(task.taskId, task.description, task.userId)}>Decline</button>
           </div>
         </div>
       ))}

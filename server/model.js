@@ -21,11 +21,13 @@ const schema = new mongoose.Schema({
     adRevenue: Number,
     name: String,
     email: String,
-    lastLogin: String,
+    lastLogin: Date,
     userId: { type: String, required: true, unique: true },
     completedTasks: [{ type: String }], // Array of task IDs
     firstLogin: { type: Boolean, default: true },
     amountToAdd: Number,
+    adsClicked: Number,
+    weeklyEarnings: Number,
   });
 
  

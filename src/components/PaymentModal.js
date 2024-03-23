@@ -18,7 +18,7 @@ const PaymentModal = () => {
   const [email, setEmail] = useState(''); // Initialize email with user's email
 
   const getUserDetail = async (userID) => {
-    await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+    await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
     .then(response => {
        if (!response.ok) {
          throw new Error(`HTTP error! Status: ${response.status}`);
@@ -57,7 +57,7 @@ const PaymentModal = () => {
         timestamp: new Date(),
         transactionType: 'Deposit',
       };
-      await fetch(`http://localhost:3001/api/createTransactions`,
+      await fetch(`https://dripdash.onrender.com/api/createTransactions`,
      {
       method: 'POST',
       headers: {
@@ -88,11 +88,79 @@ const PaymentModal = () => {
   };
 
   // credit user for referral
-
+  const updateAccountBalance = async () =>{
+    creditReferrer(userID);
+    getUserDetail(userID);
+    const totalDeposit = parseFloat(deposit) + parseFloat(amount);
+    const newDailyDropBalance = parseFloat(dailyDropBalance) + 7500;
+    if(!isUserActive && deposit !== null && amount !== null){
+      const userDetails = {
+        userId: userID,
+        deposit: totalDeposit,
+        isUserActive: true,
+        dailyDropBalance: newDailyDropBalance,
+      };
+  
+      // 
+      try {
+        const response = await fetch("https://dripdash.onrender.com/api/updateInfoAfterPay", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Add any other headers as needed
+          },
+          body: JSON.stringify(userDetails),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+      } catch (error) {
+        console.error("Error:", error.message);
+      }
+      getUserDetail(userID);
+    }
+    else if(deposit !== null && amount !== null){
+      const userDetails = {
+        userId: userID,
+        deposit: totalDeposit,
+      };
+  
+      // 
+      try {
+        const response = await fetch("https://dripdash.onrender.com/api/updateInfoAfterPay", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Add any other headers as needed
+          },
+          body: JSON.stringify(userDetails),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+      } catch (error) {
+        console.error("Error:", error.message);
+      }
+      getUserDetail(userID);
+    }
+    
+    
+        
+    
+        
+     
+  //  
+  }
 // credit user for referral
 const creditReferrer = async (userID) => {
   // Assuming you have the user ID of the current user
-  await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+  await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
   .then(response => {
      if (!response.ok) {
        throw new Error(`HTTP error! Status: ${response.status}`);
@@ -107,7 +175,7 @@ const creditReferrer = async (userID) => {
       const referredByUserID = data.referredBy;
       const referralRedeemed = data.referralRedeemed || false;
   
-      await fetch(`http://localhost:3001/api/userDetail/${referredByUserID}`)
+      await fetch(`https://dripdash.onrender.com/api/userDetail/${referredByUserID}`)
       .then(response => {
          if (!response.ok) {
            throw new Error(`HTTP error! Status: ${response.status}`);
@@ -137,7 +205,7 @@ if (referredByUserID && !referralRedeemed) {
   };
 
   try {
-    const response = await fetch("http://localhost:3001/api/creditReferrer", {
+    const response = await fetch("https://dripdash.onrender.com/api/creditReferrer", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -151,15 +219,9 @@ if (referredByUserID && !referralRedeemed) {
     }
 
     const data = await response.json();
-    updateAccountBalance();
-    alert(JSON.stringify(data));
   } catch (error) {
     console.error("Error:", error.message);
   }
-}
-else if (referralRedeemed) {
-} else {
-  console.log('No referral information found for the current user.');
 }
   
         }
@@ -182,75 +244,6 @@ else if (referralRedeemed) {
 
 
 
-const updateAccountBalance = async () =>{
-  getUserDetail(userID);
-  const totalDeposit = parseFloat(deposit) + parseFloat(amount);
-  const newDailyDropBalance = parseFloat(dailyDropBalance) + 7500;
-  if(!isUserActive && deposit !== null && amount !== null){
-    const userDetails = {
-      userId: userID,
-      deposit: totalDeposit,
-      isUserActive: true,
-      dailyDropBalance: newDailyDropBalance,
-    };
-
-    // 
-    try {
-      const response = await fetch("http://localhost:3001/api/updateInfoAfterPay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Add any other headers as needed
-        },
-        body: JSON.stringify(userDetails),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-    } catch (error) {
-      console.error("Error:", error.message);
-    }
-    getUserDetail(userID);
-  }
-  else if(deposit !== null && amount !== null){
-    const userDetails = {
-      userId: userID,
-      deposit: totalDeposit,
-    };
-
-    // 
-    try {
-      const response = await fetch("http://localhost:3001/api/updateInfoAfterPay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Add any other headers as needed
-        },
-        body: JSON.stringify(userDetails),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-    } catch (error) {
-      console.error("Error:", error.message);
-    }
-    getUserDetail(userID);
-  }
-  
-  
-      
-  
-      
-   
-//  
-}
-
 
   // end of referral credit
   
@@ -268,7 +261,8 @@ const updateAccountBalance = async () =>{
   
           // Save successful transaction data to Firebase with status "success"
           saveTransactionData(response.reference, email, amount, userID, 'success');
-          creditReferrer(userID);
+          updateAccountBalance();
+        
         } else {
           handleFailure(response);
         }

@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import myGreenImage from '../green-loader.gif';
 import myRedImage from '../red-loader.gif';
 import { ToastContainer, toast } from "react-toastify";
+import { Link } from 'react-router-dom';
 import "react-toastify/dist/ReactToastify.css";
 import { Modal, Button } from 'react-bootstrap';
 import MyModal from './MyModal'; // Replace with the correct path
@@ -52,7 +53,7 @@ const TaskManager = () => {
 
   const userIdentify = userID;
 const refreshUserDetail = async (userIdentify) => {
-  await fetch(`http://localhost:3001/api/userDetail/${userIdentify}`)
+  await fetch(`https://dripdash.onrender.com/api/userDetail/${userIdentify}`)
   .then(response => {
      if (!response.ok) {
        throw new Error(`HTTP error! Status: ${response.status}`);
@@ -83,7 +84,7 @@ const refreshUserDetail = async (userIdentify) => {
          };
      
          try {
-           const response = await fetch("http://localhost:3001/api/updateBalance", {
+           const response = await fetch("https://dripdash.onrender.com/api/updateBalance", {
              method: "POST",
              headers: {
                "Content-Type": "application/json",
@@ -121,10 +122,16 @@ const refreshUserDetail = async (userIdentify) => {
       throw new Error('Session filled up');
     } catch (error) {
       // Show modal with custom error message
+      // setErrorMessage({
+      //   header: ` Session filled up`,
+      //   body: 'Try again at 9:00 a.m.',
+      //   innerBody: 'Best Regards, Drip Dash.',
+      //   buttonText: 'Join a Whatsapp group near you to stay up to date',
+      //   buttonLink: 'https://chat.whatsapp.com/Bx4lIRm15GF4xxRTNgg7vv', // Replace with your actual link
+      // });
+
       setErrorMessage({
-        header: ` Session filled up`,
-        body: 'Try again at 9:00 a.m.',
-        innerBody: 'Best Regards, Drip Dash.',
+        header: ` Check your internet connection`,
         buttonText: 'Join a Whatsapp group near you to stay up to date',
         buttonLink: 'https://chat.whatsapp.com/Bx4lIRm15GF4xxRTNgg7vv', // Replace with your actual link
       });
@@ -144,7 +151,7 @@ const refreshUserDetail = async (userIdentify) => {
 
   const handleClose = () => setShowModal(false);
   // Function to refresh completed tasks
-  
+
 
 
   // UPLOAD PENDING TASKS WITH IMAGE FROM TASKS ONE THROUGH FIVE
@@ -158,7 +165,7 @@ const refreshUserDetail = async (userIdentify) => {
         const reader = new FileReader();
   
   
-        const storageRef = databaseRef(storage, 'images/' + userID);
+        const storageRef = databaseRef(storage, `images/${userID}/${Date.now()}_${userID}.jpg`);
   
         const uploadTask = uploadBytesResumable(storageRef, selectedFile);
         // Register three observers:
@@ -194,7 +201,7 @@ const refreshUserDetail = async (userIdentify) => {
               const writeImageData = async() =>{
                 // Create a document in 'pendingTasks'
                 try {
-                  const response = await fetch('http://localhost:3001/api/addTaskForUser', {
+                  const response = await fetch('https://dripdash.onrender.com/api/addTaskForUser', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -249,7 +256,7 @@ const refreshUserDetail = async (userIdentify) => {
         const reader = new FileReader();
   
   
-        const storageRef = databaseRef(storage, 'images/' + userID);
+        const storageRef = databaseRef(storage, `images/${userID}/${Date.now()}_${userID}.jpg`);
   
         const uploadTask = uploadBytesResumable(storageRef, selectedFile);
         // Register three observers:
@@ -285,7 +292,7 @@ const refreshUserDetail = async (userIdentify) => {
               const writeImageData = async() =>{
                 // Create a document in 'pendingTasks'
                 try {
-                  const response = await fetch('http://localhost:3001/api/addTaskForUser', {
+                  const response = await fetch('https://dripdash.onrender.com/api/addTaskForUser', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -340,7 +347,7 @@ const refreshUserDetail = async (userIdentify) => {
         const reader = new FileReader();
   
   
-        const storageRef = databaseRef(storage, 'images/' + userID);
+        const storageRef = databaseRef(storage, `images/${userID}/${Date.now()}_${userID}.jpg`);
   
         const uploadTask = uploadBytesResumable(storageRef, selectedFile);
         // Register three observers:
@@ -376,7 +383,7 @@ const refreshUserDetail = async (userIdentify) => {
               const writeImageData = async() =>{
                 // Create a document in 'pendingTasks'
                 try {
-                  const response = await fetch('http://localhost:3001/api/addTaskForUser', {
+                  const response = await fetch('https://dripdash.onrender.com/api/addTaskForUser', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -431,7 +438,7 @@ const refreshUserDetail = async (userIdentify) => {
         const reader = new FileReader();
   
   
-        const storageRef = databaseRef(storage, 'images/' + userID);
+        const storageRef = databaseRef(storage, `images/${userID}/${Date.now()}_${userID}.jpg`);
   
         const uploadTask = uploadBytesResumable(storageRef, selectedFile);
         // Register three observers:
@@ -467,7 +474,7 @@ const refreshUserDetail = async (userIdentify) => {
               const writeImageData = async() =>{
                 // Create a document in 'pendingTasks'
                 try {
-                  const response = await fetch('http://localhost:3001/api/addTaskForUser', {
+                  const response = await fetch('https://dripdash.onrender.com/api/addTaskForUser', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -522,7 +529,7 @@ const refreshUserDetail = async (userIdentify) => {
         const reader = new FileReader();
   
   
-        const storageRef = databaseRef(storage, 'images/' + userID);
+        const storageRef = databaseRef(storage, `images/${userID}/${Date.now()}_${userID}.jpg`);
   
         const uploadTask = uploadBytesResumable(storageRef, selectedFile);
         // Register three observers:
@@ -558,7 +565,7 @@ const refreshUserDetail = async (userIdentify) => {
               const writeImageData = async() =>{
                 // Create a document in 'pendingTasks'
                 try {
-                  const response = await fetch('http://localhost:3001/api/addTaskForUser', {
+                  const response = await fetch('https://dripdash.onrender.com/api/addTaskForUser', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -625,7 +632,7 @@ const handleClick = async () => {
       };
   
       try {
-        const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+        const response = await fetch("https://dripdash.onrender.com/api/updateOnClick", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -677,7 +684,7 @@ const handleClick = async () => {
       // Your function to fetch and set the task
       async function fetchAndSetTask(taskID) {
         try {
-          const response = await fetch(`http://localhost:3001/api/tasks/${taskID}`);
+          const response = await fetch(`https://dripdash.onrender.com/api/tasks/${taskID}`);
           const data = await response.json();
 
           if (data.success) {
@@ -697,7 +704,7 @@ const handleClick = async () => {
   
     const fetchBonusTask = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/tasks/${bonusTaskID}`);
+        const response = await fetch(`https://dripdash.onrender.com/api/tasks/${bonusTaskID}`);
         const data = await response.json();
 
         if (data.success) {
@@ -714,7 +721,7 @@ const handleClick = async () => {
 
     const accountBoost = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/tasks/${aLTaskID}`);
+        const response = await fetch(`https://dripdash.onrender.com/api/tasks/${aLTaskID}`);
         const data = await response.json();
 
         if (data.success) {
@@ -755,7 +762,7 @@ const handleClick = async () => {
       
       // get and set user details
       const getUserDetail = async (userID) => {
-        await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+        await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
         .then(response => {
            if (!response.ok) {
              throw new Error(`HTTP error! Status: ${response.status}`);
@@ -768,6 +775,7 @@ const handleClick = async () => {
           const dailyDropBalance = data.dailyDropBalance + rewardAmount;
           const referralsBalance = data.referralsBalance;
           const newBalance = dailyDropBalance + referralsBalance;
+          const weeklyEarnings = data.weeklyEarnings + rewardAmount;
           
           const updateBalance = async () => {
             if (user) {
@@ -775,10 +783,11 @@ const handleClick = async () => {
                 userId: userID,
                 dailyDropBalance: dailyDropBalance,
                 balance: newBalance,
+                weeklyEarnings,
               };
           
               try {
-                const response = await fetch("http://localhost:3001/api/updateBalance", {
+                const response = await fetch("https://dripdash.onrender.com/api/updateBalance", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -812,7 +821,7 @@ const handleClick = async () => {
       const taskID = task.taskID;
       const markTaskAsCompleted = async (userUid, taskID) => {
         try {
-          const response = await fetch(`http://localhost:3001/api/markTaskAsCompleted`, {
+          const response = await fetch(`https://dripdash.onrender.com/api/markTaskAsCompleted`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -861,7 +870,7 @@ const handleClick = async () => {
 
 
       const getUserDetail = async (userID) => {
-        await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+        await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
         .then(response => {
            if (!response.ok) {
              throw new Error(`HTTP error! Status: ${response.status}`);
@@ -874,6 +883,7 @@ const handleClick = async () => {
           const dailyDropBalance = data.dailyDropBalance + rewardAmount;
           const referralsBalance = data.referralsBalance;
           const newBalance = dailyDropBalance + referralsBalance;
+          const weeklyEarnings = data.weeklyEarnings + rewardAmount;
           
           const updateBalance = async () => {
             if (user) {
@@ -881,10 +891,11 @@ const handleClick = async () => {
                 userId: userID,
                 dailyDropBalance: dailyDropBalance,
                 balance: newBalance,
+                weeklyEarnings,
               };
           
               try {
-                const response = await fetch("http://localhost:3001/api/updateBalance", {
+                const response = await fetch("https://dripdash.onrender.com/api/updateBalance", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -918,7 +929,7 @@ const handleClick = async () => {
       const taskID = bonusTask.taskID;
       const markTaskAsCompleted = async (userUid, taskID) => {
         try {
-          const response = await fetch(`http://localhost:3001/api/markTaskAsCompleted`, {
+          const response = await fetch(`https://dripdash.onrender.com/api/markTaskAsCompleted`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -967,7 +978,7 @@ const handleClick = async () => {
       
       // get and set user details
       const getUserDetail = async (userID) => {
-        await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+        await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
         .then(response => {
            if (!response.ok) {
              throw new Error(`HTTP error! Status: ${response.status}`);
@@ -991,7 +1002,7 @@ const handleClick = async () => {
               };
           
               try {
-                const response = await fetch("http://localhost:3001/api/updateBalance", {
+                const response = await fetch("https://dripdash.onrender.com/api/updateBalance", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -1025,7 +1036,7 @@ const handleClick = async () => {
       const taskID = alTask.taskID;
       const markTaskAsCompleted = async (userUid, taskID) => {
         try {
-          const response = await fetch(`http://localhost:3001/api/markTaskAsCompleted`, {
+          const response = await fetch(`https://dripdash.onrender.com/api/markTaskAsCompleted`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1591,6 +1602,7 @@ const handleClick = async () => {
               </span>
 
               </p>
+              <p className="mx-auto text-center"><button className={` btn-theme ${hasPaid ? 'd-none' : ''}`}><Link to='/activate_account'>Activate Account</Link></button> </p>
           </div>
       </>
       }

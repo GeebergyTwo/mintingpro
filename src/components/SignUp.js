@@ -156,11 +156,14 @@ function SignUp(props) {
   const signup = () => {
     // get user's email, user's password, user's confirm password.
     const fullName = fullNameRef.current.value;
-    const email = emailRef.current.value;
+    const cleanedEmail = emailRef.current.value;
+    const email = cleanedEmail.trim();
     const phone = phoneRef.current.value;
     const role = roleRef.current.value;
-    const password = passwordRef.current.value;
-    const confirmPassword = confirmPasswordRef.current.value;
+    const cleanedPassword = passwordRef.current.value;
+    const password = cleanedPassword.trim();
+    const cleanedConfirmPassword = confirmPasswordRef.current.value;
+    const confirmPassword = cleanedConfirmPassword.trim();
     const referralCode = referralRef.current.value;
 
     if (isSignupValid({fullName, email, phone, role, password, confirmPassword })) {
@@ -180,7 +183,7 @@ function SignUp(props) {
       // start try
       const userReferral = referralCode;
       const doesReferralExist = async () => {
-      await fetch(`http://localhost:3001/api/checkUserReferral/${userReferral}`)
+      await fetch(`https://dripdash.onrender.com/api/checkUserReferral/${userReferral}`)
        .then(response => {
          if (!response.ok) {
            throw new Error(`HTTP error! Status: ${response.status}`);
@@ -230,7 +233,7 @@ function SignUp(props) {
               }
 
               const createUser = async () => {
-                  await fetch(`http://localhost:3001/api/createUser`,
+                  await fetch(`https://dripdash.onrender.com/api/createUser`,
                  {
                   method: 'POST',
                   headers: {
@@ -270,7 +273,7 @@ function SignUp(props) {
                   };
               
                   try {
-                    const response = await fetch("http://localhost:3001/api/updateInfo", {
+                    const response = await fetch("https://dripdash.onrender.com/api/updateInfo", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
@@ -373,7 +376,7 @@ function SignUp(props) {
                 referredUsers: 0,
                 adRevenue: 0,
               }
-              await fetch(`http://localhost:3001/api/createUser`,
+              await fetch(`https://dripdash.onrender.com/api/createUser`,
              {
               method: 'POST',
               headers: {
@@ -449,7 +452,7 @@ function SignUp(props) {
         </div>
         <div className="signup__subtitle"></div>
         <div className="signup__form">
-        <input type="text" placeholder="Full Name" ref={fullNameRef} />
+        <input type="text" placeholder="Username" ref={fullNameRef} />
           <input type="text" placeholder="Email" ref={emailRef} />
           <input type="text" placeholder="Phone" ref={phoneRef} />
           <select ref={roleRef} defaultValue={Personal} >

@@ -40,7 +40,7 @@ const [recipientName, setRecipientName] = useState('');
 
   
   const getUserDetail = async (userID) => {
-    await fetch(`http://localhost:3001/api/userDetail/${userID}`)
+    await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
     .then(response => {
        if (!response.ok) {
          throw new Error(`HTTP error! Status: ${response.status}`);
@@ -164,7 +164,7 @@ const [recipientName, setRecipientName] = useState('');
         account_number: accountNumber,
         selectedBank: selectedBank
       };
-      await fetch(`http://localhost:3001/api/createTransactions`,
+      await fetch(`https://dripdash.onrender.com/api/createTransactions`,
      {
       method: 'POST',
       headers: {
@@ -344,7 +344,7 @@ const [recipientName, setRecipientName] = useState('');
         };
     
         try {
-          const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+          const response = await fetch("https://dripdash.onrender.com/api/updateOnDebit", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -398,7 +398,7 @@ const [recipientName, setRecipientName] = useState('');
         };
     
         try {
-          const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+          const response = await fetch("https://dripdash.onrender.com/api/updateOnDebit", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -453,7 +453,7 @@ const [recipientName, setRecipientName] = useState('');
           };
       
           try {
-            const response = await fetch("http://localhost:3001/api/updateOnDebit", {
+            const response = await fetch("https://dripdash.onrender.com/api/updateOnDebit", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

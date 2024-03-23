@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../model');
 const { MongoClient } = require('mongodb');
+const cron = require('node-cron');
 
 const uri = "mongodb+srv://TheGilo:Gilo1411@dripdashcluster.khr3xz4.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDashCluster";
 
@@ -82,6 +83,71 @@ router.post("/addUser", async (request, response) => {
     response.status(500).send(error);
   }
 });
+// reset and set leadderboard
+// Schedule task to run at 00:00 on Monday (start of the week)
+cron.schedule('0 0 * * 1', async () => {
+  try {
+      // Reset weeklyEarnings and adsClicked for all users
+      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0 } });
+      console.log('Weekly reset completed successfully.');
+  } catch (err) {
+      console.error('Error resetting weekly data:', err);
+  }
+});
+
+// Endpoint to get top earners for the current week
+router.get('/top-earners', async (req, res) => {
+  try {
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      const endOfWeek = new Date();
+      endOfWeek.setHours(23, 59, 59, 999);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      const topEarners = await User.find({
+          lastLogin: {
+              $gte: startOfWeek,
+              $lte: endOfWeek
+          }
+      }).sort({ weeklyEarnings: -1 }).limit(10);
+
+      res.json(topEarners);
+  } catch (err) {
+      console.error('Error fetching top earners:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint to get top ad clickers for the current week
+router.get('/top-ad-clickers', async (req, res) => {
+  try {
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      const endOfWeek = new Date();
+      endOfWeek.setHours(23, 59, 59, 999);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      const topAdClickers = await User.find({
+          lastLogin: {
+              $gte: startOfWeek,
+              $lte: endOfWeek
+          }
+      }).sort({ adsClicked: -1 }).limit(10);
+
+      res.json(topAdClickers);
+  } catch (err) {
+      console.error('Error fetching top ad clickers:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// end of leaderboard
+
 
 // update account limit
 router.post('/updateAccountLimit', async (req, res) => {
@@ -237,6 +303,9 @@ router.post("/updateBalance", async (request, response) => {
   const newBalance = userDetails.balance;
   const dailyDropBalance = userDetails.dailyDropBalance;
   const accountLimit = userDetails.accountLimit;
+  const lastLogin = userDetails.lastLogin;
+  const firstLogin = userDetails.firstLogin;
+  const weeklyEarnings = userDetails.weeklyEarnings;
  
   try {
     const doesDataExist = await User.findOne({ userId: userId});
@@ -250,7 +319,10 @@ router.post("/updateBalance", async (request, response) => {
           { userId: userId },
           { $set: { balance: newBalance,
           dailyDropBalance,
-          accountLimit } }
+          accountLimit,
+          lastLogin,
+          firstLogin,
+          weeklyEarnings } }
         );
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
@@ -290,7 +362,8 @@ router.post("/updateInfoAfterPay", async (request, response) => {
               isUserActive: true,
               dailyDropBalance,
               referralRedeemed: true,
-              referralsBalance } }
+              referralsBalance,
+              hasPaid: true, } }
           );
           response.send({"status": "successful", "referrerData" : doesDataExist})
       }
@@ -310,38 +383,10 @@ router.post("/updateInfoAfterPay", async (request, response) => {
 });
 
 // UPDATE BALANCE AFTER TASK
-router.post("/updateBonusAfterTask", async (request, response) => {
-  const userDetails = new User(request.body);
-  const userId = userDetails.userId;
-  const addAmount = userDetails.addAmount;
-  const amountToAdd = userDetails.amountToAdd;
- 
-  try {
-    const doesDataExist = await User.findOne({ userId: userId});
-  
-        if (doesDataExist) {
-          await User.updateOne(
-            { userId: userId },
-            { $inc: {
-                referralsBalance: amountToAdd, // Increment by 1 or change as needed
-              },
-            }
-          );
 
-          response.send({"status": "successful", "referrerData" : doesDataExist})
-         
-        }
-        
-      else{
-        response.send({"status": "failed",})
-      }
-      
-      
-    
-  } catch (error) {
-    response.status(500).send(error);
-  }
-});
+// 
+
+
 //DEBIT USER AFTER WITHDRAWAL
 // updating user details after withdrawal
 // update user data
@@ -366,6 +411,42 @@ router.post("/updateOnDebit", async (request, response) => {
               referralsBalance,
               dailyDropBalance,
               accountLimit} }
+          );
+        
+    
+        response.send({"status": "successful", "referrerData" : doesDataExist})
+      }
+      else{
+        response.send({"status": "failed",})
+      }
+      
+    } catch (error) {
+      response.send(error);
+    }
+    
+  } catch (error) {
+    response.status(500).send(error);
+  }
+});
+
+// UPDATE ON ADCLICK
+router.post("/updateOnClick", async (request, response) => {
+  const userDetails = new User(request.body);
+  const userId = userDetails.userId;
+  const adRevenue = userDetails.adRevenue;
+ 
+  try {
+    const doesDataExist = await User.findOne({ userId: userId});
+    try {
+   
+  
+      // Example 2: Incrementing referredUsers field
+      if(doesDataExist){
+          await User.updateOne(
+            { userId: userId },
+            { $set: { adRevenue,
+              },
+              $inc: { adsClicked: 1 } }
           );
         
     
@@ -698,7 +779,6 @@ router.post('/checkTaskIsConfirmed', async (req, res) => {
     if (pendingTask) {
       if (pendingTask.confirmed) {
         // Move task to completed array
-        await Task.deleteOne({ taskId: taskID, userId: userID });
 
         // Assume you have a "users" collection with a schema similar to your previous examples
         const user = await User.findOneAndUpdate(
@@ -722,6 +802,8 @@ router.post('/checkTaskIsConfirmed', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
 // DECLINED TASK CHECK
 router.post('/checkDeclinedTasks', async (req, res) => {
   const { taskID, userID } = req.body;
@@ -794,6 +876,105 @@ router.post('/markTaskAsCompleted', async (req, res) => {
   }
 });
 
+
+const updateBonus = async (userId, reward, taskID) => {
+  // Your bonus update logic here...
+  const doesDataExist = await User.findOne({ userId: userId});
+  
+  if (doesDataExist) {
+    await User.updateOne(
+      { userId: userId },
+      { $inc: {
+          referralsBalance: reward, // Increment by 1 or change as needed
+        },
+      }
+    );
+
+    await Task.deleteOne({ userId, taskId: taskID });
+         
+  }
+  // Simulate a response for testing
+  return { success: true };
+};
+
+router.post('/updateBonusAfterTask', async (req, res) => {
+  const {
+    userID,
+    activeTaskOne,
+    activeTaskTwo,
+    activeTaskThree,
+    activeTaskFour,
+    activeTaskFive,
+    isTaskActuallyConfirmed,
+    isTaskActuallyConfirmedTwo,
+    isTaskActuallyConfirmedThree,
+    isTaskActuallyConfirmedFour,
+    isTaskActuallyConfirmedFive,
+    isTaskDeclined,
+    isTaskDeclinedTwo,
+    isTaskDeclinedThree,
+    isTaskDeclinedFour,
+    isTaskDeclinedFive,
+  } = req.body;
+
+  if (
+    (activeTaskOne ||
+      activeTaskTwo ||
+      activeTaskThree ||
+      activeTaskFour ||
+      activeTaskFive) &&
+    (isTaskActuallyConfirmed ||
+      isTaskActuallyConfirmedTwo ||
+      isTaskActuallyConfirmedThree ||
+      isTaskActuallyConfirmedFour ||
+      isTaskActuallyConfirmedFive)
+  ) {
+    try {
+      // task one confirmed
+      if (isTaskActuallyConfirmed && activeTaskOne) {
+        await updateBonus(userID, activeTaskOne.reward, activeTaskOne.taskID);
+      }
+
+      // task two confirmed
+      if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
+        await updateBonus(userID, activeTaskTwo.reward, activeTaskTwo.taskID);
+      }
+
+      // task three confirmed
+      if (isTaskActuallyConfirmedThree && activeTaskThree) {
+        await updateBonus(userID, activeTaskThree.reward, activeTaskThree.taskID);
+      }
+
+      // task four confirmed
+      if (isTaskActuallyConfirmedFour && activeTaskFour) {
+        await updateBonus(userID, activeTaskFour.reward, activeTaskFour.taskID);
+      }
+
+      // task five confirmed
+      if (isTaskActuallyConfirmedFive && activeTaskFive) {
+        await updateBonus(userID, activeTaskFive.reward, activeTaskFive.taskID);
+      }
+
+      // Notify success
+      res.json({ success: true, message: 'Task Completed!' });
+    } catch (error) {
+      console.error('Error updating bonus:', error.message);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  } else if (
+    isTaskDeclined ||
+    isTaskDeclinedTwo ||
+    isTaskDeclinedThree ||
+    isTaskDeclinedFour ||
+    isTaskDeclinedFive
+  ) {
+    // Notify failure
+    res.json({ success: false, message: 'Task Failed!' });
+  } else {
+    // No conditions met
+    res.json({ success: false, message: 'No matching conditions' });
+  }
+});
 // APPROVE TASK UI BACKEND
 // fetch tasks
 // Fetch all tasks
@@ -807,16 +988,17 @@ router.get('/getTasks', async (req, res) => {
 });
 // Task acceptance endpoint
 router.post('/acceptTask', async (req, res) => {
-  const {taskId, description} = req.body;
+  const {taskId, description, userId} = req.body;
 
   try {
-    const taskExists = await Task.findOne({ taskId, description });
+    const taskExists = await Task.findOne({ taskId, description, userId });
     // Implement logic to update the task status to 'confirmed' in your database
     // ...
     if(taskExists){
       const user = await Task.findOneAndUpdate(
-        { description, taskId },
-        { confirmed: true }
+        { description, taskId, userId },
+        { confirmed: true,
+          declined: false }
       );
   
       // Send a response indicating success
@@ -834,16 +1016,17 @@ router.post('/acceptTask', async (req, res) => {
 
 // Task decline endpoint
 router.post('/declineTask/', async (req, res) => {
-  const {taskId, description} = req.body;
+  const {taskId, description, userId} = req.body;
 
   try {
-    const taskExists = await Task.findOne({ taskId, description });
+    const taskExists = await Task.findOne({ taskId, description, userId });
     // Implement logic to update the task status to 'confirmed' in your database
     // ...
     if(taskExists){
       const user = await Task.findOneAndUpdate(
-        { description, taskId },
-        { declined: true }
+        { description, taskId, userId },
+        { declined: true,
+          confirmed: false }
       );
   
       // Send a response indicating success

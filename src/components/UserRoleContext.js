@@ -85,7 +85,7 @@ export const FirebaseProvider = ({ children }) => {
 
       for (let i = 0; i < taskIDs.length; i++) {
         try {
-          const response = await fetch('http://localhost:3001/api/activeTasks', {
+          const response = await fetch('https://dripdash.onrender.com/api/activeTasks', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ const createUser = async () => {
       adRevenue: 0,
       firstLogin: true,
     }
-    await fetch(`http://localhost:3001/api/addUser`,
+    await fetch(`https://dripdash.onrender.com/api/addUser`,
    {
     method: 'POST',
     headers: {
@@ -180,108 +180,7 @@ const createUser = async () => {
    
 }
 
-const triggerTaskStatusNotification = () => {
-  if (activeTaskOne || activeTaskTwo || activeTaskThree || activeTaskFour || activeTaskFive) {
-    const updateBonus = async (reward) => {
-      if (updateBonus.hasBonusBeenAdded) {
-       
-        return;
-      }
-  
-      const userDetails = {
-        userId: userID,
-        addAmount: true,
-        amountToAdd: reward,
-        bonusAdded: false, // Add a flag to track bonus addition
-      };
-  
-      try {
-        const response = await fetch("http://localhost:3001/api/updateBonusAfterTask", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Add any other headers as needed
-          },
-          body: JSON.stringify(userDetails),
-        });
-  
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-  
-        const data = await response.json();
-  
-        // Set the flag to true to indicate that the bonus has been added
-        updateBonus.hasBonusBeenAdded = true;
-        userDetails.bonusAdded = true;
-      } catch (error) {
-        console.error("Error:", error.message);
-      }
-      
-    };
-  
-    // Initialize the flag
-    updateBonus.hasBonusBeenAdded = false;
-  
-    // Rest of the code remains the same...
-    if (isTaskActuallyConfirmed || isTaskActuallyConfirmedTwo || isTaskActuallyConfirmedThree || isTaskActuallyConfirmedFour || isTaskActuallyConfirmedFive) {
-      // task one confirmed
-      if (isTaskActuallyConfirmed && activeTaskOne) {
-        updateBonus(activeTaskOne.reward);
-      } else {
-        
-      }
-  
-      // task two confirmed
-      if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
-        updateBonus(activeTaskTwo.reward);
-      } else {
-        
-      }
-  
-      // task three confirmed
-      if (isTaskActuallyConfirmedThree && activeTaskThree) {
-        updateBonus(activeTaskThree.reward);
-      } else {
-        
-      }
-  
-      // task four confirmed
-      if (isTaskActuallyConfirmedFour && activeTaskFour) {
-        updateBonus(activeTaskFour.reward);
-      } else {
-      
-      }
-  
-      // task five confirmed
-      if (isTaskActuallyConfirmedFive && activeTaskFive) {
-        updateBonus(activeTaskFive.reward);
-      } else {
-       
-      }
-  
-      const notify = () => {
-        toast.success("Task Completed!", {
-          toastId: 'toast-task-success'
-        });
-      };
-  
-      
-      notify();
-    }
-  
-    if (isTaskDeclined || isTaskDeclinedTwo || isTaskDeclinedThree || isTaskDeclinedFour || isTaskDeclinedFive) {
-      // Code to execute if at least one condition is true
-      const notify = () => {
-        toast.error("Task Failed!", {
-          toastId: 'toast-task-failed'
-        });
-      };
-      notify();
-    }
-  }
-  
-};
+
 
 
 const handleUpdateAccountLimit = async () => {
@@ -291,7 +190,7 @@ const handleUpdateAccountLimit = async () => {
     };
 
     try {
-      const response = await fetch("http://localhost:3001/api/updateAccountLimit", {
+      const response = await fetch("https://dripdash.onrender.com/api/updateAccountLimit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -311,70 +210,7 @@ const handleUpdateAccountLimit = async () => {
     }
   }
 };
-      //  CHECKING THE PENDING AND COMPLETED STATUS OF EACH AND EVERY TASK
-      const checkTaskInPendingTasks = async (taskID, userID) => {
-        if(user){
-          const response = await fetch('http://localhost:3001/api/checkTaskInPendingTasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ taskID, userID: user.uid }),
-        });
-        const data = await response.json();
-        return data.isTaskInPendingTasks;
-        }
-      
-        
-      };
-
-      const checkTaskIsConfirmed = async (taskID, userID) => {
-        if(user){
-          const response = await fetch('http://localhost:3001/api/checkTaskIsConfirmed', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ taskID, userID: user.uid }),
-        });
-        const data = await response.json();
-        return data.isConfirmed;
-        }
-      
-        
-      };
-      
-      const checkDeclinedTasks = async (taskID, userID) => {
-        if(user){
-          const response = await fetch('http://localhost:3001/api/checkDeclinedTasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ taskID, userID: user.uid }),
-        });
-        const data = await response.json();
-        return data.isDeclined;
-        }
-      
-        
-      };
-
-      const checkTaskInCompletedTasks = async (taskID, userID) => {
-       if(user){
-        const response = await fetch('http://localhost:3001/api/checkTaskInCompletedTasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ taskID, userID: user.uid }),
-        });
-        const data = await response.json();
-        return data.isTaskConfirmed;
-       }
-      
-        
-      };
+ 
 
 
 
@@ -391,7 +227,7 @@ const handleUpdateAccountLimit = async () => {
       const userUid = user.uid;
 
 const getUserDetail = async (userIdentify) => {
-   await fetch(`http://localhost:3001/api/userDetail/${userIdentify}`)
+   await fetch(`https://dripdash.onrender.com/api/userDetail/${userIdentify}`)
    .then(response => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -426,10 +262,11 @@ const getUserDetail = async (userIdentify) => {
             userId: userIdentify,
             balance: newBalance,
             lastLogin: new Date(),
+            firstLogin: false,
           };
       
           try {
-            const response = await fetch("http://localhost:3001/api/updateBalance", {
+            const response = await fetch("https://dripdash.onrender.com/api/updateBalance", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -456,6 +293,75 @@ const getUserDetail = async (userIdentify) => {
       
     });
 }
+
+//  TASK STATUS CHECK
+// DEFINING
+     //  CHECKING THE PENDING AND COMPLETED STATUS OF EACH AND EVERY TASK
+     const checkTaskInPendingTasks = async (taskID, userID) => {
+      if(user){
+        const response = await fetch('https://dripdash.onrender.com/api/checkTaskInPendingTasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taskID, userID: user.uid }),
+      });
+      const data = await response.json();
+      return data.isTaskInPendingTasks;
+      }
+    
+      
+    };
+
+    const checkTaskIsConfirmed = async (taskID, userID) => {
+      if(user){
+        const response = await fetch('https://dripdash.onrender.com/api/checkTaskIsConfirmed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taskID, userID: user.uid }),
+      });
+      const data = await response.json();
+      return data.isConfirmed;
+      }
+    
+      
+    };
+    
+    const checkDeclinedTasks = async (taskID, userID) => {
+      if(user){
+        const response = await fetch('https://dripdash.onrender.com/api/checkDeclinedTasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taskID, userID: user.uid }),
+      });
+      const data = await response.json();
+      return data.isDeclined;
+      }
+    
+      
+    };
+
+    const checkTaskInCompletedTasks = async (taskID, userID) => {
+     if(user){
+      const response = await fetch('https://dripdash.onrender.com/api/checkTaskInCompletedTasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taskID, userID: user.uid }),
+      });
+      const data = await response.json();
+      return data.isTaskConfirmed;
+     }
+    
+      
+    };
+
+    // END OF DEFINING
 
 
 const checkAllTaskStatus = async () => {
@@ -540,7 +446,7 @@ const checkAllTaskStatus = async () => {
     const refreshCompletedTasks = async (userUid) => {
       if (user) {
         try {
-          const response = await fetch(`http://localhost:3001/api/fetchCompletedTasks`, {
+          const response = await fetch(`https://dripdash.onrender.com/api/fetchCompletedTasks`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -567,7 +473,7 @@ const checkAllTaskStatus = async () => {
       // 
       const userIdentification = user.uid
       const doesUserExist = async () => {
-      await fetch(`http://localhost:3001/api/userExists/${userIdentification}`)
+      await fetch(`https://dripdash.onrender.com/api/userExists/${userIdentification}`)
        .then(response => {
          if (!response.ok) {
            throw new Error(`HTTP error! Status: ${response.status}`);
@@ -761,7 +667,6 @@ const checkAllTaskStatus = async () => {
     createUser();    
     getUserDetail(userIdentify);
     checkAllTaskStatus();
-    triggerTaskStatusNotification();
     refreshCompletedTasks(userUid);
     handleUpdateAccountLimit();
     
@@ -777,7 +682,6 @@ const checkAllTaskStatus = async () => {
             if(user){
               getUserDetail(userIdentify);
               checkAllTaskStatus();
-              triggerTaskStatusNotification();
               refreshCompletedTasks(userUid);
               handleUpdateAccountLimit();
             }
@@ -793,7 +697,135 @@ const checkAllTaskStatus = async () => {
   }
 }) 
     
-  }, [userBalance, accountLimit, activeTaskFive, activeTaskFour, activeTaskOne, activeTaskThree, activeTaskTwo, checkDeclinedTasks, checkTaskInCompletedTasks, checkTaskInPendingTasks, checkTaskIsConfirmed, createUser, handleUpdateAccountLimit, triggerTaskStatusNotification, userID]);
+  }, [userBalance, accountLimit, activeTaskFive, activeTaskFour, activeTaskOne, activeTaskThree, activeTaskTwo,  createUser, handleUpdateAccountLimit, userID]);
+
+  // trigger task notify
+ // Your state variables here
+
+ 
+// const triggerTaskStatusNotification = () => {
+//   if (activeTaskOne || activeTaskTwo || activeTaskThree || activeTaskFour || activeTaskFive) {
+//     const updateBonus = async (reward) => {
+//       if (updateBonus.hasBonusBeenAdded) {
+       
+//         return;
+//       }
+  
+//       const userDetails = {
+//         userId: userID,
+//         addAmount: true,
+//         amountToAdd: reward,
+//         bonusAdded: false, // Add a flag to track bonus addition
+//       };
+  
+//       try {
+//         const response = await fetch("https://dripdash.onrender.com/api/updateBonusAfterTask", {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             // Add any other headers as needed
+//           },
+//           body: JSON.stringify(userDetails),
+//         });
+  
+//         if (!response.ok) {
+//           throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+  
+//         const data = await response.json();
+  
+//         // Set the flag to true to indicate that the bonus has been added
+//         updateBonus.hasBonusBeenAdded = true;
+//         userDetails.bonusAdded = true;
+//       } catch (error) {
+//         console.error("Error:", error.message);
+//       }
+      
+//     };
+  
+//     // Initialize the flag
+//     updateBonus.hasBonusBeenAdded = false;
+  
+//     // Rest of the code remains the same...
+//     if (isTaskActuallyConfirmed || isTaskActuallyConfirmedTwo || isTaskActuallyConfirmedThree || isTaskActuallyConfirmedFour || isTaskActuallyConfirmedFive) {
+//       // task one confirmed
+//       if (isTaskActuallyConfirmed && activeTaskOne) {
+//         updateBonus(activeTaskOne.reward);
+//       } else {
+        
+//       }
+  
+//       // task two confirmed
+//       if (isTaskActuallyConfirmedTwo && activeTaskTwo) {
+//         updateBonus(activeTaskTwo.reward);
+//       } else {
+        
+//       }
+  
+//       // task three confirmed
+//       if (isTaskActuallyConfirmedThree && activeTaskThree) {
+//         updateBonus(activeTaskThree.reward);
+//       } else {
+        
+//       }
+  
+//       // task four confirmed
+//       if (isTaskActuallyConfirmedFour && activeTaskFour) {
+//         updateBonus(activeTaskFour.reward);
+//       } else {
+      
+//       }
+  
+//       // task five confirmed
+//       if (isTaskActuallyConfirmedFive && activeTaskFive) {
+//         updateBonus(activeTaskFive.reward);
+//       } else {
+       
+//       }
+  
+//       const notify = () => {
+//         toast.success("Task Completed!", {
+//           toastId: 'toast-task-success'
+//         });
+//       };
+  
+      
+//       notify();
+//     }
+  
+//     if (isTaskDeclined || isTaskDeclinedTwo || isTaskDeclinedThree || isTaskDeclinedFour || isTaskDeclinedFive) {
+//       // Code to execute if at least one condition is true
+//       const notify = () => {
+//         toast.error("Task Failed!", {
+//           toastId: 'toast-task-failed'
+//         });
+//       };
+//       notify();
+//     }
+//   }
+  
+// };
+
+
+//   // Call the function on component mount
+//   triggerTaskStatusNotification();
+
+//   // Subscribe to state changes to trigger the function again
+//   const stateChangeHandler = () => {
+//     triggerTaskStatusNotification();
+//   };
+
+//   // Add your state variables to the dependency array below
+//   // This ensures that the effect re-runs whenever these state variables change
+//     stateChangeHandler();
+
+//   // Clean up the effect when the component unmounts
+//   return () => {
+//     // Cleanup code, if needed
+//   };
+
+// end of task notify
+
 
   return (
     <FirebaseContext.Provider value={{userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, isTaskConfirmed, setIsTaskConfirmed, isTaskPending, setIsTaskPending, completedTasks, setCompletedTasks, isTaskPendingTwo, setIsTaskPendingTwo, isTaskConfirmedTwo, setIsTaskConfirmedTwo,  isTaskPendingThree, setIsTaskPendingThree, isTaskConfirmedThree, setIsTaskConfirmedThree, isTaskPendingFour, setIsTaskPendingFour, isTaskConfirmedFour, setIsTaskConfirmedFour, isTaskPendingFive, setIsTaskPendingFive, isTaskConfirmedFive, setIsTaskConfirmedFive, isTaskDeclined, setIsTaskDeclined, isTaskDeclinedTwo, setIsTaskDeclinedTwo, isTaskDeclinedThree, setIsTaskDeclinedThree, isTaskDeclinedFour, setIsTaskDeclinedFour, isTaskDeclinedFive, setIsTaskDeclinedFive, isTaskActuallyConfirmed, setIsTaskActuallyConfirmed, isTaskActuallyConfirmedTwo, setIsTaskActuallyConfirmedTwo, isTaskActuallyConfirmedThree, setIsTaskActuallyConfirmedThree, isTaskActuallyConfirmedFour, setIsTaskActuallyConfirmedFour, isTaskActuallyConfirmedFive, setIsTaskActuallyConfirmedFive, activeTaskOne, setActiveTaskOne, activeTaskTwo, setActiveTaskTwo, activeTaskThree, setActiveTaskThree, activeTaskFour, setActiveTaskFour, activeTaskFive, setActiveTaskFive}}>

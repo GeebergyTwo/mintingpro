@@ -14,9 +14,11 @@ function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showNav, setShowNav] = useState(false);
   const { user, setUser } = useContext(Context);
-  const {userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, referralCode, accountLimit } = useFirebase();
+  const {userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, isTaskConfirmed, setIsTaskConfirmed, isTaskPending, setIsTaskPending, completedTasks, setCompletedTasks, isTaskPendingTwo, setIsTaskPendingTwo, isTaskConfirmedTwo, setIsTaskConfirmedTwo,  isTaskPendingThree, setIsTaskPendingThree, isTaskConfirmedThree, setIsTaskConfirmedThree, isTaskPendingFour, setIsTaskPendingFour, isTaskConfirmedFour, setIsTaskConfirmedFour, isTaskPendingFive, setIsTaskPendingFive, isTaskConfirmedFive, setIsTaskConfirmedFive,  isTaskDeclined, setIsTaskDeclined, isTaskDeclinedTwo, setIsTaskDeclinedTwo, isTaskDeclinedThree, setIsTaskDeclinedThree, isTaskDeclinedFour, setIsTaskDeclinedFour, isTaskDeclinedFive, setIsTaskDeclinedFive, isTaskActuallyConfirmed, setIsTaskActuallyConfirmed, isTaskActuallyConfirmedTwo, setIsTaskActuallyConfirmedTwo, isTaskActuallyConfirmedThree, setIsTaskActuallyConfirmedThree, isTaskActuallyConfirmedFour, setIsTaskActuallyConfirmedFour, isTaskActuallyConfirmedFive, setIsTaskActuallyConfirmedFive,  activeTaskOne, setActiveTaskOne, activeTaskTwo, setActiveTaskTwo, activeTaskThree, setActiveTaskThree, activeTaskFour, setActiveTaskFour, activeTaskFive, setActiveTaskFive } = useFirebase();
   const history = useNavigate();
 
+
+  
 
 
   const toggleModal = () => {
@@ -113,7 +115,7 @@ const initializeTooltip = (element) => {
           <div className={`bottom-right-modal`}>
             <div className='close d-flex justify-content-between align-items-center' onClick={toggleModal}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" alt="close"
-              onClick={() => toggleModal(false)} height="20" fill="currentColor" className="bi bi-x-lg" viewBox="0 0 16 16">
+               height="20" fill="currentColor" className="bi bi-x-lg" viewBox="0 0 16 16">
               <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
             </svg>
             <span className='bold'>Close</span>
@@ -143,7 +145,7 @@ const initializeTooltip = (element) => {
             </div>
         )}
       
-      <nav className="navbar site-nav navbar-dark bg-light">
+      <nav className={`navbar ${userRole === 'checker' ? 'site-nav-checker' : 'site-nav'} navbar-dark bg-light`}>
         <div className="container">
           <ul className="nav justify-content-between align-items-start w-100">
      

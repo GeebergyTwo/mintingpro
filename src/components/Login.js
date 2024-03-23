@@ -68,8 +68,10 @@ function Login(props) {
     // show loading indicator.
     setIsLoading(true);
     // get the user's creadentials.
-    const email = emailRef.current.value;
-    const password = passwordRef.current.value;
+    const cleanedEmail = emailRef.current.value;
+    const email = cleanedEmail.trim();
+    const cleanedPassword = passwordRef.current.value;
+    const password = cleanedPassword.trim();
     if (isUserCredentialsValid(email, password)) {
       // if the user's credentials are valid, call Firebase authentication service.
       signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
