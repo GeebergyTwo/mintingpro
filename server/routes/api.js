@@ -234,6 +234,31 @@ cron.schedule('0 0 * * 0', async () => {
 });
 
 
+router.post('/bitcoin-address', async (req, res) => {
+  try {
+    const response = await axios.post('https://www.blockonomics.co/api/new_address', {
+      headers: { Authorization: `Bearer ${process.env.BLOCKONOMICS_API_KEY}` }
+    });
+    res.json({ address: response.data.address });
+  } catch (error) {
+    console.error('Error generating Bitcoin address:', error);
+    res.status(500).json({ error: 'Error generating Bitcoin address' });
+  }
+});
+
+router.get('/payment-status', async (req, res) => {
+  const { address } = req.query;
+  try {
+    const response = await axios.get(`https://www.blockonomics.co/api/searchhistory?addr=${address}`, {
+      headers: { Authorization: `Bearer ${process.env.BLOCKONOMICS_API_KEY}` }
+    });
+    const status = response.data.length > 0 ? 'Payment Received' : 'Payment Not Received';
+    res.json({ status });
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    res.status(500).json({ error: 'Error checking payment status' });
+  }
+});
 
 // update anonymity
 // Assuming you have a User model and express.Router() already set up

@@ -1,10 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useFirebase } from './UserRoleContext';
 import { doc, getDoc, updateDoc, getFirestore, collection, addDoc} from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { data } from 'jquery';
+import axios from 'axios';
 
 
 const PaymentModal = () => {
@@ -14,6 +15,32 @@ const PaymentModal = () => {
   const [userData, setUserData] = useState({});
   const { userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit} = useFirebase();
   const {txID, setTxId} = useState(null);
+
+  const [bitcoinAddress, setBitcoinAddress] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
+
+  useEffect(() => {
+    checkPaymentStatus();
+ }, []);
+
+  const generateBitcoinAddress = async () => {
+    try {
+      const response = await axios.post('/api/bitcoin-address');
+      setBitcoinAddress(response.data.address);
+    } catch (error) {
+      console.error('Error generating Bitcoin address:', error);
+    }
+  };
+
+  const checkPaymentStatus = async () => {
+    try {
+      const response = await axios.get(`/api/payment-status?address=${bitcoinAddress}`);
+      setPaymentStatus(response.data.status);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+    }
+  };
+
 
   const [email, setEmail] = useState(''); // Initialize email with user's email
 
@@ -291,21 +318,28 @@ if (referredByUserID && !referralRedeemed) {
     <div className="payment-container">
       <ToastContainer />
       <div className="payment-modal container">
-        <h2>Deposit Money</h2>
-        <p className='tmn'>Amount: ₦3,000</p>
+        <h2>Deposit {userRole === 'crypto' ? 'Bitcoin' : 'Money'}</h2>
+        <p className='tmn'>Amount: {userRole === 'crypto' ? '$5' : '₦3,000'}</p>
 
         {/* Add an input field for email */}
-        <input
+        {userRole === 'crypto' ? <>
+        {bitcoinAddress && <p>Bitcoin Address: {bitcoinAddress}</p>}
+        </>
+        :
+        <>
+         <input
           type="text"
           placeholder="Enter email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+        </>}
 
-        <button className="paystack-button" onClick={handlePayment}>
+        <button className="paystack-button" onClick={userRole === 'crypto' ? generateBitcoinAddress : handlePayment}>
           Make Payment
         </button>
       </div>
+
     </div>
   );
 };
