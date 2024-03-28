@@ -83,15 +83,180 @@ router.post("/addUser", async (request, response) => {
     response.status(500).send(error);
   }
 });
+// fetch prizes and winners
+const prizesAndWinnersSchema = new mongoose.Schema({
+  lastWinner: String,
+  lastPrize: Number,
+  currentPrize: Number,
+  adPrize: Number,
+  userId: String,
+  category: {
+    type: String,
+    required: true
+  },
+  prize: Number,
+});
+
+const rafflesSchema = new mongoose.Schema({
+  userId: String,
+  category: String,
+  name: String,
+  fee: Number,
+});
+// Create a model based on the schema
+const Prize = mongoose.model('Prize', prizesAndWinnersSchema, 'prizesandwinners');
+const RaffleParticipant = mongoose.model('RaffleParticipant', rafflesSchema, 'raffles');
+
+router.get('/getPrizesAndWinners', async (req, res) => {
+  try {
+    // Fetch the top earner and top ad clicker from the prizesandwinners collection
+    const topEarnerPrize = await Prize.findOne({ category: 'topEarner' });
+    const topAdClickerPrize = await Prize.findOne({ category: 'topAdClicker' });
+    const currentPrizeDoc = await Prize.findOne({ category: 'Info' });
+    const raffleWinner = await Prize.findOne({ category: 'raffleWinner' });
+    const raffleFeeDoc = await RaffleParticipant.findOne({ category: 'fee' });
+
+    // Fetch the user documents for the top earners and ad clickers
+    const topEarnerUser = await User.findOne({userId: topEarnerPrize.userId});
+    const topAdClickerUser = await User.findOne({userId: topAdClickerPrize.userId});
+    const raffleWinnerUser = await User.findOne({userId: raffleWinner.userId});
+    const topEarnerLastPrize = topEarnerPrize.prize;
+    const topAdClickerLastPrize = topAdClickerPrize.prize;
+    const raffleWinnerLastPrize = raffleWinner.prize;
+    const currentPrize = currentPrizeDoc.prize;
+    const currentAdPrize = currentPrizeDoc.adPrize;
+    const currentRaffleFee = raffleFeeDoc.fee;
+    
+
+    // Extract the usernames from the user documents
+    const topEarnerUsername = topEarnerUser ? topEarnerUser.name : null;
+    const topAdClickerUsername = topAdClickerUser ? topAdClickerUser.name : null;
+    const raffleWinnerUsername = raffleWinnerUser ? raffleWinnerUser.name : null;
+
+    // getting users anon status
+    const topEarnerAnon = topEarnerUser ? topEarnerUser.isAnonymous : null;
+    const topAdClickerAnon = topAdClickerUser ? topAdClickerUser.isAnonymous : null;
+    const raffleWinnerAnon = raffleWinnerUser ? raffleWinnerUser.isAnonymous : null;
+    // Return the top earners and ad clickers with usernames
+    res.json({ 
+        topEarner: { userId: topEarnerPrize.userId, username: topEarnerUsername },
+        topAdClicker: { userId: topAdClickerPrize.userId, username: topAdClickerUsername },
+        topEarnerUsername,
+        topAdClickerUsername,
+        topEarnerLastPrize,
+        topAdClickerLastPrize,
+        raffleWinnerLastPrize,
+        currentPrize,
+        currentAdPrize,
+        currentRaffleFee,
+        raffleWinnerUsername,
+        topEarnerAnon,
+        topAdClickerAnon,
+        raffleWinnerAnon
+    });
+  } catch (err) {
+      console.error('Error fetching prizes and winners:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// end of prizesandwinners collection
+
+// Backend (Express) - Route to Add Participants
+router.post('/addParticipant', async (req, res) => {
+  try {
+      const { userId, fee } = req.body;
+      // update user balance before adding them
+      await User.findOneAndUpdate(
+        { userId: userId },
+        { $inc: { referralsBalance: -fee, slots: 1 } }, // Deduct the fee from the balance
+        { new: true } // To return the updated user document
+      );
+  
+      // Check if the user exists and the balance was updated
+      
+       // Save participant to the "raffleParticipants" collection in MongoDB
+       await RaffleParticipant.create({ userId, category: 'participant' });
+       res.status(200).json({ message: 'Fee deducted successfully'});
+      
+  } catch (error) {
+      console.error('Error adding participant:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// select raffle winner
+const selectRaffleWinner = async () => {
+  try {
+      // Fetch all participants from the raffleParticipants collection
+      const participants = await RaffleParticipant.find({ category: 'participant' });
+
+      // Select a random participant as the winner
+      const winner = participants[Math.floor(Math.random() * participants.length)];
+
+      // Save the winner to the raffleWinners collection or document
+      // await RaffleParticipant.findOneAndUpdate({ userId: winner.userId, category: 'winner' });
+      await Prize.findOneAndUpdate({ category: 'raffleWinner' }, { $set: { userId: winner.userId, prize: 0 } }, { upsert: true });
+
+      console.log('Raffle winner selected:', winner);
+
+      // Delete all participants from the raffleParticipants collection
+      await RaffleParticipant.deleteMany({ category: 'participant' });
+
+      console.log('All participants deleted from the raffleParticipants collection.');
+  } catch (error) {
+      console.error('Error selecting raffle winner:', error);
+  }
+};
+
+
 // reset and set leadderboard
 // Schedule task to run at 00:00 on Monday (start of the week)
-cron.schedule('0 0 * * 1', async () => {
+cron.schedule('0 0 * * 0', async () => {
   try {
       // Reset weeklyEarnings and adsClicked for all users
-      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0 } });
+      await User.updateMany({}, { $set: { weeklyEarnings: 0, adsClicked: 0, weeklyReferrals: 0, slots: 0 } });
+
+
+      // Fetch top earners and ad clickers
+      const topEarners = await User.find().sort({ weeklyReferrals: -1 }).limit(1);
+      const topAdClickers = await User.find().sort({ adsClicked: -1 }).limit(1);
+
+    // Save the top earners and ad clickers to the prizesandwinners collection
+      await Prize.findOneAndUpdate({ category: 'topEarner' }, { $set: { userId: topEarners[0].userId, prize: 0 } }, { upsert: true });
+      await Prize.findOneAndUpdate({ category: 'topAdClicker' }, { $set: { userId: topAdClickers[0].userId, prize: 0 } }, { upsert: true });
+      selectRaffleWinner();
+
+
       console.log('Weekly reset completed successfully.');
   } catch (err) {
       console.error('Error resetting weekly data:', err);
+  }
+});
+
+
+
+// update anonymity
+// Assuming you have a User model and express.Router() already set up
+
+// POST /api/update-anonymity
+router.post('/update-anonymity', async (req, res) => {
+  const anonymous  = req.body.anonymous;
+  const userID = req.body.userID;
+  try {
+      // Find the current user and update the isAnonymous field
+      const user = await User.findOne({userId: userID});
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      await User.updateOne(
+        { userId: userID },
+        { $set: {isAnonymous: anonymous } }
+      );
+      res.status(200).json({ message: 'Anonymity preference updated successfully' });
+  } catch (error) {
+      console.error('Error updating anonymity preference:', error);
+      res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -111,7 +276,7 @@ router.get('/top-earners', async (req, res) => {
               $gte: startOfWeek,
               $lte: endOfWeek
           }
-      }).sort({ weeklyEarnings: -1 }).limit(10);
+      }).sort({ weeklyReferrals: -1 }).limit(10);
 
       res.json(topEarners);
   } catch (err) {
@@ -273,13 +438,14 @@ router.post("/updateInfo", async (request, response) => {
       //   { userId: userId },
       //   { $set: { balance: newBalance } }
       // );
-  
+      
       // Example 2: Incrementing referredUsers field
       if(doesDataExist){
         await User.updateOne(
           { userId: userId },
-          { $inc: { referredUsers: 1 } }
-        );
+          { $inc: { referredUsers: 1, weeklyReferrals: 1 } }
+      );
+      
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
       }
@@ -321,8 +487,9 @@ router.post("/updateBalance", async (request, response) => {
           dailyDropBalance,
           accountLimit,
           lastLogin,
-          firstLogin,
-          weeklyEarnings } }
+          firstLogin },
+          $inc: { weeklyEarnings: weeklyEarnings}  },
+           
         );
     
         response.send({"status": "successful", "referrerData" : doesDataExist})
@@ -363,7 +530,8 @@ router.post("/updateInfoAfterPay", async (request, response) => {
               dailyDropBalance,
               referralRedeemed: true,
               referralsBalance,
-              hasPaid: true, } }
+              hasPaid: true },
+              $inc: { weeklyEarnings: referralsBalance } }
           );
           response.send({"status": "successful", "referrerData" : doesDataExist})
       }
@@ -410,7 +578,8 @@ router.post("/updateOnDebit", async (request, response) => {
             { $set: { adRevenue,
               referralsBalance,
               dailyDropBalance,
-              accountLimit} }
+              accountLimit},
+              $inc: { weeklyEarnings: referralsBalance } }
           );
         
     
@@ -439,14 +608,13 @@ router.post("/updateOnClick", async (request, response) => {
     const doesDataExist = await User.findOne({ userId: userId});
     try {
    
-  
       // Example 2: Incrementing referredUsers field
       if(doesDataExist){
           await User.updateOne(
             { userId: userId },
             { $set: { adRevenue,
               },
-              $inc: { adsClicked: 1 } }
+              $inc: { adsClicked: 1, weeklyEarnings: adRevenue } }
           );
         
     
@@ -488,7 +656,7 @@ router.post("/creditReferrer", async (request, response) => {
             totalReferrals,
             referralsBalance,
           },
-          $inc: { referredUsers: -1 }, // Decrement referredUsers by 1
+          $inc: { referredUsers: -1, weeklyEarnings: referralsBalance }, // Decrement referredUsers by 1
         }
       );
 
@@ -601,6 +769,7 @@ router.get('/getUserTransactions', async (request, response) => {
     response.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 // fetching daily tasks
@@ -885,7 +1054,8 @@ const updateBonus = async (userId, reward, taskID) => {
     await User.updateOne(
       { userId: userId },
       { $inc: {
-          referralsBalance: reward, // Increment by 1 or change as needed
+          referralsBalance: reward,
+          weeklyEarnings: reward // Increment by 1 or change as needed
         },
       }
     );

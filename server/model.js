@@ -18,6 +18,7 @@ const schema = new mongoose.Schema({
     hasPaid: Boolean,
     referralRedeemed: Boolean,
     referredUsers : Number,
+    weeklyReferrals: Number,
     adRevenue: Number,
     name: String,
     email: String,
@@ -28,6 +29,8 @@ const schema = new mongoose.Schema({
     amountToAdd: Number,
     adsClicked: Number,
     weeklyEarnings: Number,
+    isAnonymous: Boolean,
+    slots: Number,
   });
 
  

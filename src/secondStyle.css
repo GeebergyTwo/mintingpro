@@ -344,6 +344,7 @@
 @media(min-width: 768px){
   .custom-card{
     margin-top: 90%;
+    height: 200px;
   }
 }
 

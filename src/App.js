@@ -20,6 +20,8 @@ import WalletBalance from './components/WalletBalance';
 import PaymentModal from './components/PaymentModal';
 import TransactionList from './components/Transactions';
 import Leaderboard from './components/LeaderBoard';
+import PrivateDashboard from './components/PrivateDashboard';
+import Dashboard from './components/dashboard';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +64,9 @@ function App() {
               <Route exact path="/transactions" element={<PrivateTx exact path="/transactions" element={<TransactionList/>} />} />
    
               <Route exact path="/activate_account" element={<PrivateActivate exact path="/activate_account" element={<PaymentModal/>} />} />
+
+              
+              <Route exact path="/account_Info" element={<PrivateDashboard exact path="/account_Info" element={<Dashboard/>} />} />
 
               <Route exact path="/leaderboard" element={<Leaderboard/>} />
      

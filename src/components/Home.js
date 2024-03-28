@@ -1,5 +1,6 @@
 // import useContext, useRef, useEffect, useCallback
 import { useContext, useRef, useEffect, useState, useCallback, Component } from 'react';
+import {Link, useMatch, useResolvedPath, useNavigate} from 'react-router-dom';
 // import custom components.
 import Loading from './Loading';
 import TaskManager from './TaskManager';
@@ -78,6 +79,20 @@ const handleTriggerNotification = async () => {
   }
 };
 
+
+const CustomLink = ({ to, children, ...props }) => {
+  const resolvedPath = useResolvedPath(to);
+  const isActive = useMatch({ path: resolvedPath.pathname, end: true });
+
+  return (
+    <li className={isActive ? 'active' : ''}>
+      <Link to={to} {...props}>
+        {children}
+      </Link>
+    </li>
+  );
+};
+
   const initializeTooltip = (element) => {
     if (element) {
       const tooltip = new window.bootstrap.Tooltip(element, {
@@ -92,12 +107,20 @@ const handleTriggerNotification = async () => {
   const tooltipRef2 = useRef();
   const tooltipTitle2 = `Get Reward From Pending Tasks`;
 
+  
+  const tooltipRefTrophy = useRef();
+  const tooltipTitleTrophy = `Events`;
+
   useEffect(() => {
     initializeTooltip(tooltipRef.current);
   }, []);
 
   useEffect(() => {
     initializeTooltip(tooltipRef2.current);
+  }, []);
+
+  useEffect(() => {
+    initializeTooltip(tooltipRefTrophy.current);
   }, []);
   
   useEffect(() => {
@@ -111,6 +134,7 @@ const handleTriggerNotification = async () => {
     color: '#000', // Text color
     textAlign: 'center',
     padding: '5px',
+    boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', // Box shadow
   };
   const taskBoxStyle = {
     width: '100%',
@@ -130,7 +154,7 @@ const handleTriggerNotification = async () => {
         <div className="my-auto ride-detail__user-avatar  d-flex justify-content-start align-items-start">
           <img src={userImg} />
           <div className='second_welcome_elements display-block'><h3 className='text-start bold'>Welcome, <span className='bold'>{userFullName}</span></h3>
-          <p className={isUserActive ? 'alert alert-success' : 'alert alert-danger'}>{isUserActive ? 'Active' : 'Inactive'}</p>
+          <p className={isUserActive ? 'alert alert-success' : 'alert alert-danger'}>{isUserActive && totalReferrals >= 9 && totalReferrals !== null ? 'Tier 3' : isUserActive && totalReferrals >= 6 && totalReferrals !== null ? 'Tier 2' : isUserActive ? 'Active' : 'Inactive'}</p>
           </div>
         </div>
       {/* svg */}
@@ -139,11 +163,19 @@ const handleTriggerNotification = async () => {
             <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
           </svg>
         </Button>
+        {/* events svg */}
+
+        <Link className="position-fixed bottom-6 end-0 m-3 trophy" ref={tooltipRefTrophy} data-bs-toggle="tooltip" data-placement="top" title={tooltipTitleTrophy}  data-html="true" to="/leaderboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" className="bi bi-trophy-fill" viewBox="0 0 16 16">
+              <path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5q0 .807-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33 33 0 0 1 2.5.5m.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935m10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935"/>
+            </svg>
+       </Link>
+        {/*  */}
 
         <button className={`d-flex position-fixed justify-content-between ${!isUserActive ? 'd-none': ''} cl-btn ${userRole === 'checker' && userRole !== null ? 'd-none' : ''}`} type="button" ref={tooltipRef2} data-bs-toggle="tooltip" data-placement="top" title={tooltipTitle2}  data-html="true" target="_blank" onClick={handleTriggerNotification}>
           <span>Claim Bonus From Task</span>
           <span className={`mx-2`}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className={`bi bi-arrow-clockwise ${isCheckLoading ? 'rotating-element' : ''} `} viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+          <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
           <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
         </svg></span>
         </button>

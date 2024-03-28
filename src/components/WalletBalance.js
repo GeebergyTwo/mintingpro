@@ -34,10 +34,136 @@ const [recipientName, setRecipientName] = useState('');
   const [newReferralsBalance, setNewReferralsBalance] = useState('');
   const [newAccountLimit, setNewAccountLimit] = useState('');
   const [isBtnDisabled, setIsBtnDisabled] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showNav, setShowNav] = useState(false);
+  const [fundAmount, setFundAmount] = useState(null);
   
   // State to manage the selected value of the dropdown
   const [selectedValue, setSelectedValue] = useState('');
 
+  const publicKey = 'pk_live_f27d2332cfd754cb3d37657e587bf209a8bb9c32';
+  
+
+  const saveTransactionFundData = async (transactionReference, email, amount, userID, status) => {
+    // const db = getFirestore();
+    // const transactionsCollection = collection(db, 'transactions');
+    // const txID = uuidv4(); 
+    if(user){
+      const txDetails = {
+        transactionReference: 'tx-' + transactionReference,
+        email,
+        amount,
+        userID,
+        status, // Include the status field
+        timestamp: new Date(),
+        transactionType: 'Deposit',
+      };
+      await fetch(`https://dripdash.onrender.com/api/createTransactions`,
+     {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add any other headers as needed
+      },
+      body: JSON.stringify(txDetails),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        try {
+      
+      
+        } catch (error) {
+          console.error('Error adding transaction document: ', error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error.message);
+      });
+    }
+    
+  };
+
+  const updateAccountBalance = async () =>{
+    getUserDetail(userID);
+      const newReferralsBalance = referralsBalance + fundAmount;
+      const userDetails = {
+        userId: userID,
+        referralsBalance: newReferralsBalance
+      };
+  
+      // 
+      try {
+        const response = await fetch("https://dripdash.onrender.com/api/updateInfoAfterPay", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Add any other headers as needed
+          },
+          body: JSON.stringify(userDetails),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+      } catch (error) {
+        console.error("Error:", error.message);
+      }
+      getUserDetail(userID);
+    
+    
+        
+    
+        
+     
+  //  
+  }
+  
+  const handlePayment = () => {
+    const paystackOptions = {
+      key: publicKey,
+      email: userEmail,
+      amount: fundAmount * 100, // Paystack uses amount in kobo (multiply by 100)
+      ref: new Date().getTime(),
+      callback: (response) => {
+        if (response.status === 'success') {
+          toast.success('Payment was successful!', {
+            position: toast.POSITION.TOP_CENTER,
+          });
+  
+          // Save successful transaction data to Firebase with status "success"
+          saveTransactionFundData(response.reference, userEmail, fundAmount, userID, 'success');
+          updateAccountBalance();
+        
+        } else {
+          handleFailure(response);
+        }
+        
+      },
+      onClose: () => {
+        handleFailure({ message: 'Payment was closed' });
+      },
+    };
+  
+    // Initialize Paystack
+    const handler = window.PaystackPop.setup(paystackOptions);
+    handler.openIframe();
+  };
+  
+  const handleFailure = (error) => {
+    toast.error('Payment failed: ' + error.message, {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  
+    // Save failed transaction data to Firebase with status "failed"
+    saveTransactionFundData('N/A', userEmail, fundAmount, userID, 'failed');
+  };
   
   const getUserDetail = async (userID) => {
     await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
@@ -63,7 +189,15 @@ const [recipientName, setRecipientName] = useState('');
      });
  }
 
-
+// 
+ const toggleModal = () => {
+  setIsModalOpen((prevState) => !prevState);
+  toggleNav();
+};
+const toggleNav = () => {
+  setShowNav(!showNav);
+};
+// 
 
   // Function to handle the change of the dropdown value
   const handleDropdownChange = (event) => {
@@ -565,8 +699,9 @@ const [recipientName, setRecipientName] = useState('');
       debitUser();
     } catch (error) {
       console.error('Error initiating transfer:', error.response.data);
-      toast.warning('Withdrawal not completed: Please confirm your details and try again', {
+      toast.warning(`Withdrawal not completed: Please confirm your details and try again`, {
         position: toast.POSITION.TOP_CENTER,
+        toastId: 'toast-incomplete-fail',
       });
       setIsBtnLoading(false);
       setIsBtnDisabled(false);
@@ -576,6 +711,37 @@ const [recipientName, setRecipientName] = useState('');
   return (
     <>
     <ToastContainer />
+    {/*  */}
+    {showNav && (
+        <div className="backdrop"></div>
+      )}
+        {isModalOpen && (
+          <div className={`middle-modal`}>
+            <div className='close d-flex justify-content-between align-items-center mb-5' onClick={toggleModal}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" alt="close"
+               height="20" fill="currentColor" className="bi bi-x-lg" viewBox="0 0 16 16">
+              <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+            </svg>
+            <span className='bold'>Close</span>
+            </div>
+            <div className="modal-content mt-3">
+              <h4 className='mb-3'>Fund your Wallet</h4>
+              <input
+              type="number"
+              placeholder="Enter amount"
+              className='border border-secondary rounded p-3'
+              value={fundAmount}
+              onChange={(e) => setFundAmount(e.target.value)}
+              // onChange={(e) => setEmail(e.target.value)}
+            />
+            <button className="border-theme rounded-pill p-2 no-bg mt-5" onClick={handlePayment}>
+              Make Payment
+            </button>
+            </div>
+            
+            </div>
+        )}
+    {/*  */}
       <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
@@ -732,6 +898,7 @@ const [recipientName, setRecipientName] = useState('');
             </svg>
               <span className='mx-2'>Bonus Balance</span></h5>
               <p className="card-text display-5">₦{referralsBalance}</p>
+              <button className='btn btn-outline-light rounded' onClick={toggleModal}>Fund Wallet</button>
             </div>
           </div>
         </div>

@@ -13,12 +13,31 @@
 }
 
 .active{
-  background-color: rgba(197, 182, 182, 0.2);
+  /* background-color: rgba(197, 182, 182, 0.2); */
   border-radius: 50%;
+  /* color: #dc1e31 !important; */
   text-align: center;
+}
+.no-bg{
+  background: none !important;
+}
+.no-bg:hover{
+  color: #dc1e31;
+  border: 2px solid #dc1e31 ;
+}
+.bg-theme{
+  background: #dc1e31;
+  border: none;
+}
+.bg-theme:hover{
+  background: #dc1e31;
 }
 .text-theme{
   color: #dc1e31;
+}
+.sc-rank{
+  position: fixed;
+  bottom: 12%;
 }
 a{
     color: white !important;
@@ -27,7 +46,19 @@ a{
     justify-content: space-around !important;
     padding: 5rem;
 }
-
+.trophy{
+  color: #fff;
+  border-radius: 50%;
+  padding: 8px;
+  background-color: #dc1e31;
+  border: none;
+}
+.ctOne:hover svg,
+.ctTwo:hover svg,
+.ctThree:hover svg{
+  transform: translateX(5px); /* Adjust the value as needed */
+  transition: 0.3s ease;
+}
 .ex-btn{
     width: 50% !important;
     border-radius: 30px !important;
@@ -58,7 +89,22 @@ a{
   /* margin-left: 67%; */
  
 }
+.btn-theme-default {
+  background-color: #dc1e31;
+  color: #fff;
+  border: none;
+  padding: 10px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: end;
+  /* margin-left: 67%; */
+ 
+}
 .btn-theme a{
+  text-decoration: none !important;
+}
+.btn-theme-default a{
   text-decoration: none !important;
 }
 .bottom-panel {
@@ -78,7 +124,23 @@ a{
   }
   
   /* Rest of your CSS remains unchanged */
-  
+  /* Style the scrollbar */
+.table-responsive::-webkit-scrollbar {
+  width: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 5px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
   
   .bottom-panel.expanded {
     transform: translateX(-50%) translateY(-30px);
@@ -147,9 +209,10 @@ a{
   height: 100%;
   width: 100%;
   position: absolute;
-  background: url('../public/circles-squares-background-design.jpg');
+  background: #faf9f9;
+  /* background: url('../public/circles-squares-background-design.jpg'); */
   /* Image by <a href="https://www.freepik.com/free-photo/circles-squares-background-design_9590690.htm#query=background%20image%20design%20for%20web%20app&position=14&from_view=search&track=ais">Freepik</a> */
-  background-position: center 50px;
+  /* background-position: center 50px; */
   background-repeat: no-repeat;
   background-size: cover;
   z-index: -3;
@@ -175,6 +238,9 @@ a{
   padding: 0;
   font-weight: 400;
 }
+.border-theme{
+  border: 2px solid #dc1e31;
+}
 .border-top-theme{
   font-family: 'Montserrat', sans-serif;
   border-top: 2px solid #dc1e31;
@@ -183,18 +249,27 @@ a{
 }
 
 .site-nav{
+  position: fixed;
   width: 80%;
   height: 53px;
-  position: absolute;
   bottom: 10px;
-  background: #96000f !important;
+  /* background: #96000f !important; */
+  border: 2px solid gray;
   left: 10%;
   border-radius: 10px;
   padding: 8px;
 }
   
+.site-nav-checker{
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+.active .nav-link{
+  color: #dc1e31 !important;
+}
 .site-nav .nav-link{
-  color: white !important;
+  /* color: white !important; */
 }
   .navbar-toggler-icon {
     display: block;
@@ -408,13 +483,28 @@ a{
 .bottom-right-modal {
   position: fixed;
   background: white;
-  bottom: 100px;
+  bottom: 95px;
   min-width: 250px;
   /* width: 35%; */
   border-radius: 5px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
   transition: 0.4s;
   right: 20px;
+  padding: 25px;
+  z-index: 2001; /* Ensure the backdrop is above the other content */
+}
+
+.middle-modal {
+  position: fixed;
+  background: white;
+  bottom: 30%;
+  min-width: 300px;
+  /* height: 300px; */
+  /* width: 35%; */
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  transition: 0.4s;
+  right: 30%;
   padding: 25px;
   z-index: 2001; /* Ensure the backdrop is above the other content */
 }
@@ -590,6 +680,7 @@ a{
     justify-content: center;
     align-items: start;
   }
+  
 }
 @media (max-width: 850px) and (min-width: 650px){
   .navigation-canvas{
@@ -625,9 +716,13 @@ a{
     /* font-size: 12px; */
     text-wrap: wrap;
   }
+  .middle-modal{
+    right: 20px;
+  }
 }
 @media(max-width: 360px){
   .site-nav{
     padding: 1px;
   }
+  
 }

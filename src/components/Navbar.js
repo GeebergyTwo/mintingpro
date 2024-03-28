@@ -84,7 +84,7 @@ const initializeTooltip = (element) => {
     const tempInput = document.createElement('input');
     
     // Set the value of the input to the referral ID
-    tempInput.value = referralCode;
+    tempInput.value = `https://dripdash.netlify.app/login?ref=${referralCode}`;
     
     // Append the input element to the DOM (not visible)
     document.body.appendChild(tempInput);
@@ -99,7 +99,7 @@ const initializeTooltip = (element) => {
     document.body.removeChild(tempInput);
 
     // Optionally, provide feedback to the user (e.g., a tooltip or notification)
-    toast.info('Referral ID copied to clipboard!', {
+    toast.info('Referral link copied to clipboard!', {
       position: toast.POSITION.TOP_CENTER,
     });
   };
@@ -130,7 +130,7 @@ const initializeTooltip = (element) => {
                 <p className="u-e">{userEmail}</p>
                 <p>{userPhoneNo}</p>
                 <div className='d-flex align-items-start justify-content-between b-top'>
-                  <p className='mt-3'>Your Referral ID:</p>
+                  <p className='mt-3'>Your Referral Link:</p>
                   <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-copy" viewBox="0 0 16 16">
                     <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
                   </svg></button>
@@ -138,6 +138,14 @@ const initializeTooltip = (element) => {
               </div>
               <p>Account Limit: <span className='bold'>{accountLimit}</span></p>
 
+              <Link className="d-flex align-items-center justify-content-between bold text-dark bold ctThree" to="/account_Info">
+                <span>More Info</span>
+                <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-right" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                </svg>
+                </span>
+              </Link>
               
               <span className="header__logout text-center text-danger bold align-items-center justify-content-center" onClick={logout}>Logout</span>
             </div>
