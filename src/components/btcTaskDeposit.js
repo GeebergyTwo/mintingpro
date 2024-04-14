@@ -13,7 +13,7 @@ const BtcTaskList = () => { // Rename the function to start with an uppercase le
 
   const fetchPendingBtcDeposits = async () => {
     try {
-      const response = await fetch('https://dripdash.onrender.com/api/getBtcDeposits');
+      const response = await fetch('https://broker-nel-app.onrender.com/api/getBtcDeposits');
       const transactions = await response.json();
       setBtcTx(transactions);
     } catch (error) {
@@ -24,7 +24,7 @@ const BtcTaskList = () => { // Rename the function to start with an uppercase le
   // change state of btc tasks (transactions and temp data);
   const changePaymentStatus = async (transactionId, newStatus, userId) => {
     try {
-      const response = await fetch(`https://dripdash.onrender.com/api/updatePaymentStatusAndDelete/${transactionId}`, {
+      const response = await fetch(`https://broker-nel-app.onrender.com/api/updatePaymentStatusAndDelete/${transactionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

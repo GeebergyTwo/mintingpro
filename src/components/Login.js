@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from './Loading';
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 function Login(props) {
   // get shared data from context.
@@ -137,8 +138,9 @@ function Login(props) {
   <div className="signup">
     <ToastContainer />
       <div className="signup__content">
-        <div className="signup__container">
-          <div className="signup__title">Login</div>
+        <div className="signup__container d-flex align-items-center justify-content-between p-2">
+        <div className="signup__title">Login</div>
+        <p className="fw-bold font-italic">Nexus.<span className="bg-theme border-theme text-white rounded-pill">fx</span>.investment blog</p>
         </div>
         <div className="signup__subtitle"></div>
         <div className="signup__form">
@@ -179,14 +181,21 @@ function Login(props) {
           <button type="submit" className="signup__btn"  onClick={login}>
             Login
           </button>
+          <div className="d-flex justify-content-end mb-2">
+          <button type="button" className="remove-default-btn text-primary text-end" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+            Forgot Password
+          </button>
+          </div>
+          
+      
           <span className="login__signup" onClick={() => toggleModal(true)}>Create Account</span>
         </div>
       </div>
      
-      <footer class="mt-0 container-fluid fw-bold">
-        <div class="row">
+      <footer className="mt-0 container-fluid fw-bold">
+        <div className="row">
           {/*  */}
-          <div class="col-md-3">
+          <div className="col-lg-3">
             <p>
               
               <ul>
@@ -196,9 +205,9 @@ function Login(props) {
             </p>
           </div>
           {/*  */}
-            <div class="col-md-3">   
+            <div className="col-lg-4">   
                <p>
-               <ul class="d-flex flex-straight justify-content-start text-start align-items-start">
+               <ul className="d-flex flex-straight justify-content-start text-start align-items-start">
                     <h3 className='fw-bold text-theme'>Get In Touch</h3>
                     <li className="d-flex align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="mx-1 bi bi-envelope" viewBox="0 0 16 16">
@@ -209,9 +218,9 @@ function Login(props) {
                </p>
             </div>
             {/*  */}
-            <div class="col-md-3">
+            <div className="col-lg-2">
                 <p>
-                <ul class="d-flex flex-straight justify-content-start text-start align-items-start">
+                <ul className="d-flex flex-straight justify-content-start text-start align-items-start">
                     <h3 className='fw-bold text-theme'>Customer Service</h3>
                     <li className="d-flex align-items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="mx-1 bi bi-telephone" viewBox="0 0 16 16">
@@ -222,7 +231,7 @@ function Login(props) {
                 </p>
             </div>
             {/*  */}
-            <div class="col-md-3">
+            <div className="col-lg-3">
               <p>
                 
                 <ul>
@@ -233,11 +242,12 @@ function Login(props) {
             </div>
             {/*  */}
         </div>
-        <div class="text-center mt-5 mb-1">
+        <div className="text-center mt-5 mb-1">
             <p>&copy; 2021 Nexus.fx.investment blog</p>
         </div>
       </footer>
       {isLoading && <Loading />}
+      <ForgotPasswordModal />
     </div>
   );
 }

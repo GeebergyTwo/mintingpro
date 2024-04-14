@@ -31,8 +31,8 @@ function SignUp(props) {
   const [showPassword, setShowPassword] = useState(false);
   const [checkPassword, setCheckPassword] = useState('');
   const [refParam, setRefParam] = useState('');
-  const [currencySymbol, setCurrencySymbol] = useState(null);
-  const [country, setCountry] = useState(null);
+  const [currencySymbol, setCurrencySymbol] = useState("");
+  const [country, setCountry] = useState("");
 
   useEffect(() => {
     const handleOnline = () => {
@@ -65,7 +65,7 @@ function SignUp(props) {
 
   const handleCurrencyChange = (selectedOption) => {
       // Save selectedOption.value to your database
-      setCurrencySymbol(selectedOption.value)
+      setCurrencySymbol(selectedOption.value);
   };
 
   // country choose
@@ -149,7 +149,7 @@ function SignUp(props) {
    * @param {*} param0 
    * @returns 
    */
-  const isSignupValid = ({ fullName, email, phone, role, password, confirmPassword, currencySymbol, country }) => {
+  const isSignupValid = ({ fullName, email, phone, role, password, confirmPassword, countryCheck, symbolCheck }) => {
     if (validator.isEmpty(fullName)){
       // alert("Please input your full name");
       toast.warning("Please input your full name", {
@@ -178,16 +178,16 @@ function SignUp(props) {
       });
       return false;
     }
-    if (validator.isEmpty(currencySymbol)) {
+    if (countryCheck.trim() === '') {
       // alert("Please select field");
-      toast.warning("Please select currency", {
+      toast.warning("Please select country", {
         position: toast.POSITION.TOP_CENTER,
       });
       return false;
     }
-    if (validator.isEmpty(country)) {
+    if (symbolCheck.trim() === '') {
       // alert("Please select field");
-      toast.warning("Please select country", {
+      toast.warning("Please select currency", {
         position: toast.POSITION.TOP_CENTER,
       });
       return false;
@@ -231,8 +231,10 @@ function SignUp(props) {
     const cleanedConfirmPassword = confirmPasswordRef.current.value;
     const confirmPassword = cleanedConfirmPassword.trim();
     const referralCode =  referralRef.current.value;
+    const countryCheck = country ? country : '';
+    const symbolCheck = currencySymbol ? currencySymbol : '';
 
-    if (isSignupValid({fullName, email, phone, role, password, confirmPassword, currencySymbol, country })) {
+    if (isSignupValid({fullName, email, phone, role, password, confirmPassword, countryCheck, symbolCheck })) {
       // show loading 
       setIsLoading(true);
       // create new user's uuid.
@@ -249,7 +251,7 @@ function SignUp(props) {
       // start try
       const userReferral = referralCode;
       const doesReferralExist = async () => {
-      await fetch(`https://dripdash.onrender.com/api/checkUserReferral/${userReferral}`)
+      await fetch(`https://broker-nel-app.onrender.com/api/checkUserReferral/${userReferral}`)
        .then(response => {
          if (!response.ok) {
            throw new Error(`HTTP error! Status: ${response.status}`);
@@ -301,7 +303,7 @@ function SignUp(props) {
               }
 
               const createUser = async () => {
-                  await fetch(`https://dripdash.onrender.com/api/createUser`,
+                  await fetch(`https://broker-nel-app.onrender.com/api/createUser`,
                  {
                   method: 'POST',
                   headers: {
@@ -341,7 +343,7 @@ function SignUp(props) {
                   };
               
                   try {
-                    const response = await fetch("https://dripdash.onrender.com/api/updateInfo", {
+                    const response = await fetch("https://broker-nel-app.onrender.com/api/updateInfo", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
@@ -446,7 +448,7 @@ function SignUp(props) {
                 currencySymbol,
                 country,
               }
-              await fetch(`https://dripdash.onrender.com/api/createUser`,
+              await fetch(`https://broker-nel-app.onrender.com/api/createUser`,
              {
               method: 'POST',
               headers: {
@@ -511,6 +513,7 @@ function SignUp(props) {
     <div className="signup">
       <ToastContainer />
       <div className="signup__content">
+      <p className="fw-bold font-italic m-2 text-end">Nexus.<span className="bg-theme border-theme text-white rounded-pill">fx</span>.investment blog</p>
         <div className="signup__container">
           <div className="signup__title text-theme">Sign Up</div>
           <div className="signup__close">
@@ -530,12 +533,14 @@ function SignUp(props) {
             <option value={Crypto}>Don't receive updates</option>
           </select>
           <Select
+            defaultValue={country}
             className="mb-3"
             options={countryOptions}
             onChange={handleCountryChange}
             placeholder="Select a country"
         />
           <Select
+            defaultValue={currencySymbol}
             className="mb-3"
             options={currencyOptions}
             onChange={handleCurrencyChange}

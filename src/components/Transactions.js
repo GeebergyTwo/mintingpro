@@ -16,7 +16,7 @@ const TransactionList = () => {
 
   const fetchUserTransactions = async (userID) => {
     try {
-      const response = await fetch(`https://dripdash.onrender.com/api/getUserTransactions?userID=${userID}`);
+      const response = await fetch(`https://broker-nel-app.onrender.com/api/getUserTransactions?userID=${userID}`);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
