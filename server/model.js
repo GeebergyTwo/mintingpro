@@ -5,6 +5,7 @@ const schema = new mongoose.Schema({
     number: String,
     role: String,
     accountLimit : Number,
+    reserveAccountLimit: Number,
     balance: Number,
     deposit: Number,
     referralsBalance : Number,
@@ -30,7 +31,10 @@ const schema = new mongoose.Schema({
     adsClicked: Number,
     weeklyEarnings: Number,
     isAnonymous: Boolean,
+    currencySymbol: String,
+    country: String,
     slots: Number,
+    previousReferralsBalance: { type: Number, default: 0 },
   });
 
  

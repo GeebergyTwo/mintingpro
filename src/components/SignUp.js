@@ -15,17 +15,24 @@ import { ToastContainer, toast } from "react-toastify";
 import { getStorage, ref as Ref, getDownloadURL, listAll } from "firebase/storage";
 import "react-toastify/dist/ReactToastify.css";
 import {useLocation} from 'react-router-dom';
+import Loading from './Loading';
+import Select from 'react-select';
+import fetchCurrencies from "./fetchCurrencies";
+import fetchCountries from "./fetchCountries";
+
 
 function SignUp(props) {
   // get toggleModal functin from higher order components.
   const { toggleModal } = props;
-
+  const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [avatars, setAvatars] = useState([]);
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [checkPassword, setCheckPassword] = useState('');
   const [refParam, setRefParam] = useState('');
+  const [currencySymbol, setCurrencySymbol] = useState(null);
+  const [country, setCountry] = useState(null);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -45,6 +52,39 @@ function SignUp(props) {
     };
   }, []);
 
+  const [currencyOptions, setCurrencyOptions] = useState([]);
+
+  useEffect(() => {
+      const fetchCurrencyData = async () => {
+          const currencies = await fetchCurrencies();
+          setCurrencyOptions(currencies);
+      };
+
+      fetchCurrencyData();
+  }, []);
+
+  const handleCurrencyChange = (selectedOption) => {
+      // Save selectedOption.value to your database
+      setCurrencySymbol(selectedOption.value)
+  };
+
+  // country choose
+
+  const [countryOptions, setCountryOptions] = useState([]);
+
+    useEffect(() => {
+        const fetchCountryData = async () => {
+            const countries = await fetchCountries();
+            setCountryOptions(countries);
+        };
+
+        fetchCountryData();
+    }, []);
+
+    const handleCountryChange = (selectedOption) => {
+        // Handle the selected country
+        setCountry(selectedOption.value);
+    };
   const location = useLocation();
 
   // Extract referral code from URL parameters
@@ -66,7 +106,6 @@ function SignUp(props) {
   const confirmPasswordRef = useRef(null);
   const referralRef = useRef(null);
 
-  const { cometChat, setIsLoading } = useContext(Context);
 
   const Naira = 'naira';
   const Crypto = 'crypto';
@@ -110,7 +149,7 @@ function SignUp(props) {
    * @param {*} param0 
    * @returns 
    */
-  const isSignupValid = ({ fullName, email, phone, role, password, confirmPassword }) => {
+  const isSignupValid = ({ fullName, email, phone, role, password, confirmPassword, currencySymbol, country }) => {
     if (validator.isEmpty(fullName)){
       // alert("Please input your full name");
       toast.warning("Please input your full name", {
@@ -135,6 +174,20 @@ function SignUp(props) {
     if (validator.isEmpty(role)) {
       // alert("Please select field");
       toast.warning("Please select field", {
+        position: toast.POSITION.TOP_CENTER,
+      });
+      return false;
+    }
+    if (validator.isEmpty(currencySymbol)) {
+      // alert("Please select field");
+      toast.warning("Please select currency", {
+        position: toast.POSITION.TOP_CENTER,
+      });
+      return false;
+    }
+    if (validator.isEmpty(country)) {
+      // alert("Please select field");
+      toast.warning("Please select country", {
         position: toast.POSITION.TOP_CENTER,
       });
       return false;
@@ -179,7 +232,7 @@ function SignUp(props) {
     const confirmPassword = cleanedConfirmPassword.trim();
     const referralCode =  referralRef.current.value;
 
-    if (isSignupValid({fullName, email, phone, role, password, confirmPassword })) {
+    if (isSignupValid({fullName, email, phone, role, password, confirmPassword, currencySymbol, country })) {
       // show loading 
       setIsLoading(true);
       // create new user's uuid.
@@ -243,6 +296,8 @@ function SignUp(props) {
                 referralRedeemed: false,
                 referredUsers: 0,
                 adRevenue: 0,
+                currencySymbol,
+                country,
               }
 
               const createUser = async () => {
@@ -388,6 +443,8 @@ function SignUp(props) {
                 referralRedeemed: false,
                 referredUsers: 0,
                 adRevenue: 0,
+                currencySymbol,
+                country,
               }
               await fetch(`https://dripdash.onrender.com/api/createUser`,
              {
@@ -469,9 +526,21 @@ function SignUp(props) {
           <input type="text" placeholder="Email" ref={emailRef} />
           <input type="text" placeholder="Phone" ref={phoneRef} />
           <select ref={roleRef} defaultValue={Naira} >
-            <option value={Naira}>Earn In Naira</option>
-            <option value={Crypto}>Earn In Bitcoin (crypto)</option>
+            <option value={Naira}>Stay Updated</option>
+            <option value={Crypto}>Don't receive updates</option>
           </select>
+          <Select
+            className="mb-3"
+            options={countryOptions}
+            onChange={handleCountryChange}
+            placeholder="Select a country"
+        />
+          <Select
+            className="mb-3"
+            options={currencyOptions}
+            onChange={handleCurrencyChange}
+            placeholder="Select a currency"
+        />
           <input type="text" defaultValue={refParam || ''} placeholder="Referral code (optional)" ref={referralRef} />
           <div className='d-flex' style={{ position: 'relative' }}>
           <input
@@ -538,6 +607,7 @@ function SignUp(props) {
           
         </div>
       </div>
+      {isLoading && <Loading />}
     </div>
   );
 }

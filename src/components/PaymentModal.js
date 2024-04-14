@@ -3,45 +3,169 @@ import { useFirebase } from './UserRoleContext';
 import { doc, getDoc, updateDoc, getFirestore, collection, addDoc} from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { ToastContainer, toast } from "react-toastify";
+import myRedImage from '../red-loader.gif';
 import "react-toastify/dist/ReactToastify.css";
-import { data } from 'jquery';
+import { v4 as uuidv4 } from "uuid";
 import axios from 'axios';
+import Loading from './Loading';
 
 
 const PaymentModal = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const amount = 3000; // Fixed amount
   const publicKey = 'pk_live_f27d2332cfd754cb3d37657e587bf209a8bb9c32';
   const user = auth.currentUser;
   const [userData, setUserData] = useState({});
-  const { userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit} = useFirebase();
-  const {txID, setTxId} = useState(null);
+  const { userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, slots, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, currencySymbol, country} = useFirebase();
+  const [isBtnLoading, setIsBtnLoading] = useState(false);
+  const [selectedFundValue, setSelectedFundValue] = useState('');
+  const [selectedStarterValue, setSelectedStarterValue] = useState('');
+  const [isFundBtnLoading, setIsFundBtnLoading] = useState(false);
+  const [fundAddress, setFundAddress] = useState('');
+  const [fundAmount, setFundAmount] = useState(null);
 
-  const [bitcoinAddress, setBitcoinAddress] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState('');
+  const [paymentAddress, setPaymentAddress] = useState('');
+  const [goldPaymentAddress, setGoldPaymentAddress] = useState('');
+  const [professionalPaymentAddress, setProfessionalPaymentAddress] = useState('');
+  const [expertPaymentAddress, setExpertPaymentAddress] = useState('');
 
-  useEffect(() => {
-    checkPaymentStatus();
- }, []);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const generateBitcoinAddress = async () => {
+  const getUniqueId = uuidv4(); 
+
+  const generatePaymentAddress = async (price) => {
+    setIsBtnLoading(true);
+    setIsLoading(true);
     try {
-      const response = await axios.post('/api/bitcoin-address');
-      setBitcoinAddress(response.data.address);
+      if(selectedStarterValue.trim() !== '') {
+        const data = {
+          price_amount: price,
+          price_currency: 'usd',
+          pay_currency: selectedStarterValue,
+          ipn_callback_url: 'https://dripdash.onrender.com/api/crypto-callback',
+          order_id: getUniqueId,
+          order_description: 'Crypto Deposit'
+        };
+      
+        const response = await axios.post('https://dripdash.onrender.com/api/payment', { data });
+      
+        const reference = uuidv4();
+        if(price === 10000){
+          setExpertPaymentAddress(response.data.pay_address);
+        }
+        else if(price === 5000){
+          setProfessionalPaymentAddress(response.data.pay_address);
+        }
+        else if(price === 2000){
+          setGoldPaymentAddress(response.data.pay_address);
+        }
+        else if(price === 300){
+          setPaymentAddress(response.data.pay_address);
+        }
+      
+        saveBtcTransactionData(reference, userEmail, price, userID, 'pending', response.data.payment_id);
+        saveTempCryptoData(userID, response.data.payment_id, response.data.payment_status, response.data.pay_address, response.data.price_amount, response.data.order_description)
+        setIsBtnLoading(false);
+        setIsLoading(false);
+        setErrorMessage('');
+      }
+      else{
+        setIsBtnLoading(false);
+        setIsLoading(false);
+        toast.error(`Select a payment option!`, {
+          toastId: 'toast-gen-failed',
+        });
+      }
+      
     } catch (error) {
-      console.error('Error generating Bitcoin address:', error);
+      const reference = uuidv4();
+      console.error('Error generating payment address:', error.response.data);
+      setErrorMessage('Error generating payment address');
+      setPaymentAddress('');
+      saveBtcTransactionData(reference, userEmail, price, userID, 'failed');
+      setIsBtnLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const checkPaymentStatus = async () => {
-    try {
-      const response = await axios.get(`/api/payment-status?address=${bitcoinAddress}`);
-      setPaymentStatus(response.data.status);
-    } catch (error) {
-      console.error('Error checking payment status:', error);
+  // generate fund address
+  const generateFundAddress = async () => {
+    if(selectedFundValue.trim() !== '') {
+      if(fundAmount < 200){
+        toast.error(`Minimum deposit is $200!`, {
+          toastId: 'toast-fund-failed',
+        });
+      }
+      else{
+        
+      setIsLoading(true);
+      try {
+        const data = {
+          price_amount: fundAmount,
+          price_currency: 'usd',
+          pay_currency: selectedFundValue,
+          ipn_callback_url: 'https://dripdash.onrender.com/api/crypto-callback',
+          order_id: getUniqueId,
+          order_description: 'Crypto Deposit'
+        };
+  
+        const response = await axios.post('https://dripdash.onrender.com/api/payment', { data });
+  
+        // Assuming the payment address is returned in the response
+  
+        const reference = uuidv4();
+        setFundAddress(response.data.pay_address);
+        saveBtcTransactionData(reference, userEmail, fundAmount, userID, 'pending', response.data.payment_id);
+        saveTempCryptoData(userID, response.data.payment_id, response.data.payment_status, response.data.pay_address, response.data.price_amount, response.data.order_description);
+        setIsLoading(false);
+        setErrorMessage('');
+      } catch (error) {
+        const reference = uuidv4();
+        console.error('Error generating payment address:', error.response.data);
+        setErrorMessage('Error generating payment address');
+        setPaymentAddress('');
+        saveBtcTransactionData(reference, userEmail, fundAmount, userID, 'failed');
+        setIsBtnLoading(false);
+        setIsLoading(false);
+      }
+      }
+    }
+    else{
+      setIsBtnLoading(false);
+      setIsLoading(false);
+      toast.error(`Select a payment option!`, {
+        toastId: 'toast-gen-failed',
+      });
     }
   };
+  
 
+  const handleCopy = () => {
+    // Create a temporary input element to facilitate copying
+    const tempInput = document.createElement('input');
+    
+    // Set the value of the input to the referral ID
+    tempInput.value = paymentAddress;
+    
+    // Append the input element to the DOM (not visible)
+    document.body.appendChild(tempInput);
+    
+    // Select the text in the input
+    tempInput.select();
+    
+    // Execute the copy command
+    document.execCommand('copy');
+    
+    // Remove the temporary input element from the DOM
+    document.body.removeChild(tempInput);
 
+    // Optionally, provide feedback to the user (e.g., a tooltip or notification)
+    toast.info('Wallet Address Copied!', {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  };
+
+// 
   const [email, setEmail] = useState(''); // Initialize email with user's email
 
   const getUserDetail = async (userID) => {
@@ -70,276 +194,482 @@ const PaymentModal = () => {
      });
  }
 
-  const saveTransactionData = async (transactionReference, email, amount, userID, status) => {
-    // const db = getFirestore();
-    // const transactionsCollection = collection(db, 'transactions');
-    // const txID = uuidv4(); 
-    if(user){
-      const txDetails = {
-        transactionReference: 'tx-' + transactionReference,
-        email,
-        amount,
-        userID,
-        status, // Include the status field
-        timestamp: new Date(),
-        transactionType: 'Deposit',
-      };
-      await fetch(`https://dripdash.onrender.com/api/createTransactions`,
-     {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add any other headers as needed
-      },
-      body: JSON.stringify(txDetails),
+//  save crypto transaction (deposit)
+const saveBtcTransactionData = async (transactionReference, email, amount, userID, status, paymentID) => {
+  // const db = getFirestore();
+  // const transactionsCollection = collection(db, 'transactions');
+  // const txID = uuidv4(); 
+  if(user){
+    const txDetails = {
+      transactionReference: 'tx-' + transactionReference,
+      email,
+      amount,
+      userID,
+      status, // Include the status field
+      timestamp: new Date(),
+      transactionType: 'Deposit',
+      paymentID,
+    };
+    await fetch(`https://dripdash.onrender.com/api/createTransactions`,
+   {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Add any other headers as needed
+    },
+    body: JSON.stringify(txDetails),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        try {
-      
-      
-        } catch (error) {
-          console.error('Error adding transaction document: ', error);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error.message);
-      });
-    }
-    
-  };
-
-  // credit user for referral
-  const updateAccountBalance = async () =>{
-    creditReferrer(userID);
-    getUserDetail(userID);
-    const totalDeposit = parseFloat(deposit) + parseFloat(amount);
-    const newDailyDropBalance = parseFloat(dailyDropBalance) + 7500;
-    if(!isUserActive && deposit !== null && amount !== null){
-      const userDetails = {
-        userId: userID,
-        deposit: totalDeposit,
-        isUserActive: true,
-        dailyDropBalance: newDailyDropBalance,
-      };
-  
-      // 
+    .then(data => {
       try {
-        const response = await fetch("https://dripdash.onrender.com/api/updateInfoAfterPay", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Add any other headers as needed
-          },
-          body: JSON.stringify(userDetails),
-        });
-  
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-  
-        const data = await response.json();
+    
       } catch (error) {
-        console.error("Error:", error.message);
+        console.log('Error adding transaction document: ', JSON.stringify(error));
       }
-      getUserDetail(userID);
-    }
-    else if(deposit !== null && amount !== null){
-      const userDetails = {
-        userId: userID,
-        deposit: totalDeposit,
-      };
-  
-      // 
-      try {
-        const response = await fetch("https://dripdash.onrender.com/api/updateInfoAfterPay", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Add any other headers as needed
-          },
-          body: JSON.stringify(userDetails),
-        });
-  
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-  
-        const data = await response.json();
-      } catch (error) {
-        console.error("Error:", error.message);
-      }
-      getUserDetail(userID);
-    }
-    
-    
-        
-    
-        
-     
-  //  
-  }
-// credit user for referral
-const creditReferrer = async (userID) => {
-  // Assuming you have the user ID of the current user
-  await fetch(`https://dripdash.onrender.com/api/userDetail/${userID}`)
-  .then(response => {
-     if (!response.ok) {
-       throw new Error(`HTTP error! Status: ${response.status}`);
-     }
-     
-     return response.json();
-   })
-   .then(data => {
-    
-    const firstCredit = async () =>{
-      // current user data
-      const referredByUserID = data.referredBy;
-      const referralRedeemed = data.referralRedeemed || false;
-  
-      await fetch(`https://dripdash.onrender.com/api/userDetail/${referredByUserID}`)
-      .then(response => {
-         if (!response.ok) {
-           throw new Error(`HTTP error! Status: ${response.status}`);
-         }
-     
-         return response.json();
-       })
-       .then(data => {
-        const finalCredit = async () =>{
-          // rferrer data
-
-          const newReferralsCount = parseFloat(data.referralsCount) + 1;
-          const newTotalReferrals = parseFloat(data.totalReferrals) + 1;
-          const dailyDropBalance = parseFloat(data.dailyDropBalance);
-          const newReferralsBalance = parseFloat(data.referralsBalance) + 500;
-          const newBalance = parseFloat(dailyDropBalance) + parseFloat(newReferralsBalance);
-
-          
-if (referredByUserID && !referralRedeemed) {
-  const userDetails = {
-    userId: referredByUserID,
-    referralsCount: newReferralsCount,
-    totalReferrals: newTotalReferrals,
-    balance: newBalance,
-    referralsBalance: newReferralsBalance,
-
-  };
-
-  try {
-    const response = await fetch("https://dripdash.onrender.com/api/creditReferrer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Add any other headers as needed
-      },
-      body: JSON.stringify(userDetails),
+    })
+    .catch(error => {
+      console.log('Error:', JSON.stringify(error.message));
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-  } catch (error) {
-    console.error("Error:", error.message);
   }
-}
   
-        }
+};
+// end of crypto tx record
 
-        finalCredit()
-       })
-       .catch(error => {
-     
-       });
-       }
-
-    firstCredit()
-   })
-   .catch(error => {
-     console.log('refering error')
-   });
-
-
+// save temp crypto tx
+const saveTempCryptoData = async (userID, payment_id, payment_status, pay_address, price_amount, order_description) => {
+  // const db = getFirestore();
+  // const transactionsCollection = collection(db, 'transactions');
+  // const txID = uuidv4(); 
+  if(user){
+    const paymentData = {
+      userID,
+      payment_id,
+      payment_status,
+      pay_address,
+      price_amount,
+      order_description
+    };
+    await fetch(`https://dripdash.onrender.com/api/saveCryptoPayments`,
+   {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Add any other headers as needed
+    },
+    body: JSON.stringify(paymentData),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+    })
+    .then(data => {
+      try {
+        
+    
+      } catch (error) {
+        
+      }
+    })
+    .catch(error => {
+      
+    });
+  }
+  
 };
 
 
+// 
+const handleDropdownChange = (event) => {
+  setSelectedStarterValue(event.target.value);
+};
+const handleFundDropdownChange = (event) => {
+  setSelectedFundValue(event.target.value);
+};
+// ...
+
+const debitUser = (ticketFee) =>{
+  setIsLoading(true);
+  getUserDetail(userID);
+  if (userBalance >= ticketFee && ticketFee !== null){
+      const addParticipant = async () => {
+          try {
+              await fetch('https://dripdash.onrender.com/api/addParticipant', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                      userId: userID,
+                      fee: ticketFee // Example user ID
+                      // Other user information...
+                  }),
+              });
+              // next function
+              setIsLoading(false);
+              toast.success(`Investment plan activated!`, {
+                  toastId: 'toast-fund-success',
+              });
+
+          } catch (error) {
+              console.error('Error adding participant:', error);
+              setIsLoading(false);
+              toast.error(`Failed to activate investmnent!`, {
+                  toastId: 'toast-add-failed',
+              });
+          }
+      };
+      addParticipant();
+      
+  }
+  else{
+      setIsLoading(false);
+      toast.error(`Insufficient Funds! - Fund your Wallet to continue`, {
+          toastId: 'toast-fund-failed',
+      });
+  }
+}
+// ...
+// ,,,
 
 
-  // end of referral credit
-  
-  const handlePayment = () => {
-    const paystackOptions = {
-      key: publicKey,
-      email: email,
-      amount: amount * 100, // Paystack uses amount in kobo (multiply by 100)
-      ref: new Date().getTime(),
-      callback: (response) => {
-        if (response.status === 'success') {
-          toast.success('Payment was successful!', {
-            position: toast.POSITION.TOP_CENTER,
-          });
-  
-          // Save successful transaction data to Firebase with status "success"
-          saveTransactionData(response.reference, email, amount, userID, 'success');
-          updateAccountBalance();
-        
-        } else {
-          handleFailure(response);
-        }
-        
-      },
-      onClose: () => {
-        handleFailure({ message: 'Payment was closed' });
-      },
-    };
-  
-    // Initialize Paystack
-    const handler = window.PaystackPop.setup(paystackOptions);
-    handler.openIframe();
-  };
-  
-  const handleFailure = (error) => {
-    toast.error('Payment failed: ' + error.message, {
-      position: toast.POSITION.TOP_CENTER,
-    });
-  
-    // Save failed transaction data to Firebase with status "failed"
-    saveTransactionData('N/A', email, amount, userID, 'failed');
-  };
-  
+
   return (
-    <div className="payment-container">
+    <div className="payment-container" style={{background: '#13151b', overflowY: 'auto'}}>
       <ToastContainer />
-      <div className="payment-modal container">
-        <h2>Deposit {userRole === 'crypto' ? 'Bitcoin' : 'Money'}</h2>
-        <p className='tmn'>Amount: {userRole === 'crypto' ? '$5' : '₦3,000'}</p>
+        <div className='row'>
+          {/* deposit */}
+          <div className='col-sm-6'>
+          <div className="payment-modal container-fluid text-secondary mt-5" style={{ width: '75%', maxWidth: '400px', marginLeft: '18%', backgroundColor: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
+
+<div className="mt-3">
+  <h4 className='mb-3'>Fund your Wallet</h4>
+{fundAddress && <p className='bold'>Make sure to send the exact amount specified to avoid missing transactions.</p>}
+
+
+{fundAddress ? (<><p>Amount: <span className='fw-bold text-white'>${fundAmount}</span></p><p>Send your {selectedFundValue} to this wallet address:</p>
+<div className='d-flex align-items-center justify-content-between'>
+<input className='bg-light-sec border border-secondary p-3' type="text" readOnly value={fundAddress} />  
+{/* place your handle copy on this button */}
+<button className='remove-btn-style'><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+  <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
+</svg></button>
+</div>
+</>) : (
+<>
+{!fundAddress && 
+<>
+<input
+  type="number"
+  placeholder={`Enter amount`}
+  className='border border-secondary rounded p-3'
+  value={fundAmount}
+  onChange={(e) => setFundAmount(e.target.value)}
+  // onChange={(e) => setEmail(e.target.value)}
+/>
+
+{/* select funding option */}
+{/* select withdrawal from */}
+
+<div className='mt-1'>
+<select className='form-control mt-4 mb-3' id="myDropdown" value={selectedFundValue} onChange={handleFundDropdownChange}>
+  <option value="">Select Payment Option</option>
+  <option value="btc">Bitcoin</option>
+  <option value="eth">Ethereum</option>
+  <option value="xrp">Ripple</option>
+</select>
+</div>
+</>
+}
+</>
+)
+
+}
+  
+{!fundAddress && <button className="border-theme text-white rounded-pill p-2 no-bg mt-5" onClick={() => generateFundAddress()}>
+  {isFundBtnLoading ? <><img src={myRedImage} alt="Loading" width="20" height="20" style={{
+    borderRadius : '50%',
+  }}/></> : 'Make a deposit'}
+</button>}
+</div>
+
+</div>
+          </div>
+            {/* investment plans */}
+            
+              <div className='col-sm-6'>
+              <div className="payment-modal mt-5 container-fluid text-secondary" style={{ width: '75%', maxWidth: '400px', marginLeft: '18%', backgroundColor: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
+        <h2 className='text-theme'>Starter Plan</h2>
+        <span className='d-flex align-items-center justify-content-center'>
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="mx-2 text-secondary bi bi-info-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+          </svg>
+          <p>investment plan</p>
+        </span>
+        <h3 className='text-white display-5'>$300</h3>
 
         {/* Add an input field for email */}
-        {userRole === 'crypto' ? <>
-        {bitcoinAddress && <p>Bitcoin Address: {bitcoinAddress}</p>}
-        </>
-        :
-        <>
-         <input
-          type="text"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        </>}
+      
+        <div>
+          
+          <p className='bold'>Make sure to send the exact amount specified to avoid missing transactions.</p>
+          
+          {/* select withdrawal from */}
+          {!paymentAddress && 
+            <div className='mt-1'>
+            <select className='form-control mt-4 mb-3' id="myDropdown" value={selectedStarterValue} onChange={handleDropdownChange}>
+              <option value="">Select Payment Option</option>
+              <option value="btc">Bitcoin</option>
+              <option value="eth">Ethereum</option>
+              <option value="xrp">Ripple</option>
+            </select>
+          </div>
+          }
+          
+          {paymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
+          <div className='d-flex align-items-start justify-content-between'>
+          <input className='bg-light-sec' type="text" readOnly value={paymentAddress} />  
+            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
+            </svg></button>
+          </div>
+          </> }
+          {errorMessage && <p>{errorMessage}</p>}
+        </div>
+      
 
-        <button className="paystack-button" onClick={userRole === 'crypto' ? generateBitcoinAddress : handlePayment}>
-          Make Payment
+       
+        {!paymentAddress && 
+          <div className='row justify-content-between'>
+          <div className='col-md-6'>
+          <button className="paystack-button" onClick={() => generatePaymentAddress(300)}>
+          {isBtnLoading ? <img src={myRedImage} alt="Loading" width="20" height="20" /> : 'Make Payment'}
         </button>
-      </div>
+          </div>
+        <div className='col-md-6'>
+        <button className="border-theme text-white rounded-pill p-2 no-bg mt-5" onClick={() => debitUser(300)}>
+          {isBtnLoading ? <><img src={myRedImage} alt="Loading" width="20" height="20" style={{
+            borderRadius : '50%',
+          }}/></> : 'Pay from balance'}
+        </button>
+        </div>
+        </div>
+        }
 
+        
+      </div>
+              </div>
+        </div>
+        {/* investment sections */}
+        <div className='row'>
+          
+          
+          {/* first column */}
+          <div className='col-sm-4'>
+              <div className="payment-modal mt-5 container-fluid text-secondary" style={{ width: '75%', maxWidth: '400px', marginLeft: '18%', backgroundColor: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
+        <h2 className='text-theme'>Gold Plan</h2>
+        <span className='d-flex align-items-center justify-content-center'>
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="mx-2 text-secondary bi bi-info-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+          </svg>
+          <p>investment plan</p>
+        </span>
+        <h3 className='text-white display-5'>$2,000</h3>
+
+        {/* Add an input field for email */}
+      
+        <div>
+          
+          <p className='bold'>Make sure to send the exact amount specified to avoid missing transactions.</p>
+          
+          {/* select withdrawal from */}
+          {!goldPaymentAddress && 
+            <div className='mt-1'>
+            <select className='form-control mt-4 mb-3' id="myDropdown" value={selectedStarterValue} onChange={handleDropdownChange}>
+              <option value="">Select Payment Option</option>
+              <option value="btc">Bitcoin</option>
+              <option value="eth">Ethereum</option>
+              <option value="xrp">Ripple</option>
+            </select>
+          </div>
+          }
+          
+          {goldPaymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
+          <div className='d-flex align-items-start justify-content-between'>
+          <input className='bg-light-sec' type="text" readOnly value={goldPaymentAddress} />  
+            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
+            </svg></button>
+          </div>
+          </> }
+          {errorMessage && <p>{errorMessage}</p>}
+        </div>
+      
+
+       
+      
+
+        {!goldPaymentAddress && 
+          <div className='row justify-content-between'>
+          <div className='col-md-6'>
+          <button className="paystack-button" onClick={() => generatePaymentAddress(2000)}>
+          {isBtnLoading ? <img src={myRedImage} alt="Loading" width="20" height="20" /> : 'Make Payment'}
+        </button>
+          </div>
+        <div className='col-md-6'>
+        <button className="border-theme text-white rounded-pill p-2 no-bg mt-5" onClick={() => debitUser(2000)}>
+          {isBtnLoading ? <><img src={myRedImage} alt="Loading" width="20" height="20" style={{
+            borderRadius : '50%',
+          }}/></> : 'Pay from balance'}
+        </button>
+        </div>
+        </div>
+        }
+
+        
+      </div>
+              </div>
+              {/* second column */}
+              <div className='col-sm-4'>
+              <div className="payment-modal mt-5 container-fluid text-secondary" style={{ width: '75%', maxWidth: '400px', marginLeft: '18%', backgroundColor: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
+        <h2 className='text-theme'>Professional</h2>
+        <span className='d-flex align-items-center justify-content-center'>
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="mx-2 text-secondary bi bi-info-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+          </svg>
+          <p>investment plan</p>
+        </span>
+        <h3 className='text-white display-5'>$5,000</h3>
+
+        {/* Add an input field for email */}
+      
+        <div>
+          
+          <p className='bold'>Make sure to send the exact amount specified to avoid missing transactions.</p>
+          
+          {/* select withdrawal from */}
+          {!professionalPaymentAddress && 
+            <div className='mt-1'>
+            <select className='form-control mt-4 mb-3' id="myDropdown" value={selectedStarterValue} onChange={handleDropdownChange}>
+              <option value="">Select Payment Option</option>
+              <option value="btc">Bitcoin</option>
+              <option value="eth">Ethereum</option>
+              <option value="xrp">Ripple</option>
+            </select>
+          </div>
+          }
+          
+          {professionalPaymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
+          <div className='d-flex align-items-start justify-content-between'>
+          <input className='bg-light-sec' type="text" readOnly value={professionalPaymentAddress} />  
+            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
+            </svg></button>
+          </div>
+          </> }
+          {errorMessage && <p>{errorMessage}</p>}
+        </div>
+      
+
+       
+        
+
+        {!professionalPaymentAddress && 
+          <div className='row justify-content-between'>
+          <div className='col-md-6'>
+          <button className="paystack-button" onClick={() => generatePaymentAddress(5000)}>
+            {isBtnLoading ? <img src={myRedImage} alt="Loading" width="20" height="20" /> : 'Make Payment'}
+          </button>
+          </div>
+        <div className='col-md-6'>
+        <button className="border-theme text-white rounded-pill p-2 no-bg mt-5" onClick={() => debitUser(5000)}>
+          {isBtnLoading ? <><img src={myRedImage} alt="Loading" width="20" height="20" style={{
+            borderRadius : '50%',
+          }}/></> : 'Pay from balance'}
+        </button>
+        </div>
+        </div>
+        }
+
+        
+      </div>
+              </div>
+              {/* third column */}
+              <div className='col-sm-4'>
+              <div className="payment-modal mt-5 container-fluid text-secondary" style={{ width: '75%', maxWidth: '400px', marginLeft: '18%', backgroundColor: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
+        <h2 className='text-theme'>Expert</h2>
+        <span className='d-flex align-items-center justify-content-center'>
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="mx-2 text-secondary bi bi-info-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+          </svg>
+          <p>investment plan</p>
+        </span>
+        <h3 className='text-white display-5'>$10,000</h3>
+
+        {/* Add an input field for email */}
+      
+        <div>
+          
+          <p className='bold'>Make sure to send the exact amount specified to avoid missing transactions.</p>
+          
+          {/* select withdrawal from */}
+          {!expertPaymentAddress && 
+            <div className='mt-1'>
+            <select className='form-control mt-4 mb-3' id="myDropdown" value={selectedStarterValue} onChange={handleDropdownChange}>
+              <option value="">Select Payment Option</option>
+              <option value="btc">Bitcoin</option>
+              <option value="eth">Ethereum</option>
+              <option value="xrp">Ripple</option>
+            </select>
+          </div>
+          }
+          
+          {expertPaymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
+          <div className='d-flex align-items-start justify-content-between'>
+          <input className='bg-light-sec' type="text" readOnly value={expertPaymentAddress} />  
+            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+              <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
+            </svg></button>
+          </div>
+          </> }
+          {errorMessage && <p>{errorMessage}</p>}
+        </div>
+      
+
+       
+        
+
+        {!expertPaymentAddress && 
+          <div className='row justify-content-between'>
+          <div className='col-md-6'>
+          <button className="paystack-button" onClick={() => generatePaymentAddress(10000)}>
+            {isBtnLoading ? <img src={myRedImage} alt="Loading" width="20" height="20" /> : 'Make Payment'}
+          </button>
+          </div>
+        <div className='col-md-6'>
+        <button className="border-theme text-white rounded-pill p-2 no-bg mt-5" onClick={() => debitUser(10000)}>
+          {isBtnLoading ? <><img src={myRedImage} alt="Loading" width="20" height="20" style={{
+            borderRadius : '50%',
+          }}/></> : 'Pay from balance'}
+        </button>
+        </div>
+        </div>
+        }
+        
+      </div>
+              </div>
+        </div>
+      {isLoading && <Loading />}
     </div>
   );
 };

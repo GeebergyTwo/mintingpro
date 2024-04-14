@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ref, onValue } from 'firebase/database';
 import './index.css';
 import Context from './Context';
 import { FirebaseProvider } from './components/UserRoleContext';
-import { realTimeDb } from './firebase';
-import ErrorBoundary from './components/ErrorBoundary';
 import Home from './components/Home';
 import Login from './components/Login';
 import Loading from './components/Loading';
@@ -15,11 +12,9 @@ import PrivateBalance from './components/PrivateBalance';
 import PrivateTx from './components/PrivateTx';
 import SignUp from './components/SignUp';
 import Navbar from './components/Navbar';
-import { useLocation } from 'react-router-dom';
 import WalletBalance from './components/WalletBalance';
 import PaymentModal from './components/PaymentModal';
 import TransactionList from './components/Transactions';
-import Leaderboard from './components/LeaderBoard';
 import PrivateDashboard from './components/PrivateDashboard';
 import Dashboard from './components/dashboard';
 
@@ -45,7 +40,6 @@ function App() {
     <Context.Provider value={{ isLoading, setIsLoading, user, setUser, cometChat, selectedFrom, setSelectedFrom, selectedTo, setSelectedTo, rideRequest, setRideRequest, currentRide, setCurrentRide, ridePrice, setRidePrice }}>
       <FirebaseProvider>
         <Router>
-          <ErrorBoundary>
             <Navbar />
             <Routes>
               <Route exact path="/" element={<PrivateRoute exact path="/" element={<Home />} />} />
@@ -59,19 +53,18 @@ function App() {
                 path="/signup"
                 element={<SignUp />}
               />
-              <Route exact path="/balance" element={<PrivateBalance exact path="/balance" element={<WalletBalance/>} />} />
+              <Route exact path="/withdraw" element={<PrivateBalance exact path="/withdraw" element={<WalletBalance/>} />} />
     
               <Route exact path="/transactions" element={<PrivateTx exact path="/transactions" element={<TransactionList/>} />} />
    
-              <Route exact path="/activate_account" element={<PrivateActivate exact path="/activate_account" element={<PaymentModal/>} />} />
+              <Route exact path="/investment_plans" element={<PrivateActivate exact path="/investment_plans" element={<PaymentModal/>} />} />
 
               
-              <Route exact path="/account_Info" element={<PrivateDashboard exact path="/account_Info" element={<Dashboard/>} />} />
+              <Route exact path="/profile" element={<PrivateDashboard exact path="/profile" element={<Dashboard/>} />} />
 
-              <Route exact path="/leaderboard" element={<Leaderboard/>} />
+              {/* <Route exact path="/leaderboard" element={<Leaderboard/>} /> */}
      
             </Routes>
-          </ErrorBoundary>
           {isLoading && <Loading />}
         </Router>
       </FirebaseProvider>

@@ -11,23 +11,12 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function Navbar() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showNav, setShowNav] = useState(false);
   const { user, setUser } = useContext(Context);
-  const {userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, isTaskConfirmed, setIsTaskConfirmed, isTaskPending, setIsTaskPending, completedTasks, setCompletedTasks, isTaskPendingTwo, setIsTaskPendingTwo, isTaskConfirmedTwo, setIsTaskConfirmedTwo,  isTaskPendingThree, setIsTaskPendingThree, isTaskConfirmedThree, setIsTaskConfirmedThree, isTaskPendingFour, setIsTaskPendingFour, isTaskConfirmedFour, setIsTaskConfirmedFour, isTaskPendingFive, setIsTaskPendingFive, isTaskConfirmedFive, setIsTaskConfirmedFive,  isTaskDeclined, setIsTaskDeclined, isTaskDeclinedTwo, setIsTaskDeclinedTwo, isTaskDeclinedThree, setIsTaskDeclinedThree, isTaskDeclinedFour, setIsTaskDeclinedFour, isTaskDeclinedFive, setIsTaskDeclinedFive, isTaskActuallyConfirmed, setIsTaskActuallyConfirmed, isTaskActuallyConfirmedTwo, setIsTaskActuallyConfirmedTwo, isTaskActuallyConfirmedThree, setIsTaskActuallyConfirmedThree, isTaskActuallyConfirmedFour, setIsTaskActuallyConfirmedFour, isTaskActuallyConfirmedFive, setIsTaskActuallyConfirmedFive,  activeTaskOne, setActiveTaskOne, activeTaskTwo, setActiveTaskTwo, activeTaskThree, setActiveTaskThree, activeTaskFour, setActiveTaskFour, activeTaskFive, setActiveTaskFive } = useFirebase();
+  const {userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, slots, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, currencySymbol, country} = useFirebase();
   const history = useNavigate();
 
 
-  
-
-
-  const toggleModal = () => {
-    setIsModalOpen((prevState) => !prevState);
-    toggleNav();
-  };
-  const toggleNav = () => {
-    setShowNav(!showNav);
-  };
 
   const logout = () => {
     const isLogout = window.confirm('Do you want to log out ?');
@@ -45,8 +34,6 @@ function Navbar() {
       localStorage.removeItem('auth');
       // remove authenticated user from context.
       setUser(null);
-      setIsModalOpen(false);
-      toggleNav();
       // redirect to login page.
       history('/login');
     }
@@ -60,11 +47,6 @@ const initializeTooltip = (element) => {
   }
 };
 
-  const tooltipRef = useRef();
-
-  useEffect(() => {
-    initializeTooltip(tooltipRef.current);
-  }, []);
 
   const CustomLink = ({ to, children, ...props }) => {
     const resolvedPath = useResolvedPath(to);
@@ -79,30 +61,30 @@ const initializeTooltip = (element) => {
     );
   };
 
-  const handleCopy = () => {
-    // Create a temporary input element to facilitate copying
-    const tempInput = document.createElement('input');
+  // const handleCopy = () => {
+  //   // Create a temporary input element to facilitate copying
+  //   const tempInput = document.createElement('input');
     
-    // Set the value of the input to the referral ID
-    tempInput.value = `https://dripdash.netlify.app/login?ref=${referralCode}`;
+  //   // Set the value of the input to the referral ID
+  //   tempInput.value = `https://dripdash.netlify.app/login?ref=${referralCode}`;
     
-    // Append the input element to the DOM (not visible)
-    document.body.appendChild(tempInput);
+  //   // Append the input element to the DOM (not visible)
+  //   document.body.appendChild(tempInput);
     
-    // Select the text in the input
-    tempInput.select();
+  //   // Select the text in the input
+  //   tempInput.select();
     
-    // Execute the copy command
-    document.execCommand('copy');
+  //   // Execute the copy command
+  //   document.execCommand('copy');
     
-    // Remove the temporary input element from the DOM
-    document.body.removeChild(tempInput);
+  //   // Remove the temporary input element from the DOM
+  //   document.body.removeChild(tempInput);
 
-    // Optionally, provide feedback to the user (e.g., a tooltip or notification)
-    toast.info('Referral link copied to clipboard!', {
-      position: toast.POSITION.TOP_CENTER,
-    });
-  };
+  //   // Optionally, provide feedback to the user (e.g., a tooltip or notification)
+  //   toast.info('Referral link copied to clipboard!', {
+  //     position: toast.POSITION.TOP_CENTER,
+  //   });
+  // };
 
 
   return (
@@ -111,52 +93,12 @@ const initializeTooltip = (element) => {
         {showNav && (
         <div className="backdrop"></div>
       )}
-        {isModalOpen && (
-          <div className={`bottom-right-modal`}>
-            <div className='close d-flex justify-content-between align-items-center' onClick={toggleModal}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" alt="close"
-               height="20" fill="currentColor" className="bi bi-x-lg" viewBox="0 0 16 16">
-              <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-            </svg>
-            <span className='bold'>Close</span>
-            </div>
-            <div className="modal-content">
-              {/* Add your modal content here */}
-             
-              <div className="ride-detail__user-avatar">
-                <img src={userImg} />
-              </div>
-              <div className='text-center bold'>
-                <p className="u-e">{userEmail}</p>
-                <p>{userPhoneNo}</p>
-                <div className='d-flex align-items-start justify-content-between b-top'>
-                  <p className='mt-3'>Your Referral Link:</p>
-                  <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-copy" viewBox="0 0 16 16">
-                    <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
-                  </svg></button>
-                </div>
-              </div>
-              <p>Account Limit: <span className='bold'>{accountLimit}</span></p>
-
-              <Link className="d-flex align-items-center justify-content-between bold text-dark bold ctThree" to="/account_Info">
-                <span>More Info</span>
-                <span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-right" viewBox="0 0 16 16">
-                    <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
-                </svg>
-                </span>
-              </Link>
-              
-              <span className="header__logout text-center text-danger bold align-items-center justify-content-center" onClick={logout}>Logout</span>
-            </div>
-            
-            </div>
-        )}
       
       <nav className={`navbar ${userRole === 'checker' ? 'site-nav-checker' : 'site-nav'} navbar-dark bg-light`}>
-        <div className="container">
-          <ul className="nav justify-content-between align-items-start w-100">
-     
+      
+          <ul className="nav justify-content-between align-items-center">
+
+            {/* main dashboard */}
             <CustomLink className="nav-link text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Home" to="/">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -169,9 +111,14 @@ const initializeTooltip = (element) => {
                 <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z" />
               </svg>
             </CustomLink>
-
-
-            <CustomLink className="nav-link text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Wallet Balance" to="/balance">
+            {/* deposit/investment plans */}
+            <CustomLink className="nav-link text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Investment plans" to="/investment_plans">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-bank" viewBox="0 0 16 16">
+              <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+            </svg>
+            </CustomLink>
+            {/*  */}
+            <CustomLink className="nav-link text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Wallet Balance" to="/withdraw">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -198,25 +145,24 @@ const initializeTooltip = (element) => {
               </svg>
             </CustomLink>
 
+            <CustomLink className="nav-link text-secondary"  data-bs-toggle="tooltip" data-bs-placement="top" title="Profile" to="/profile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+            </svg>
+            </CustomLink>
+
             <button
               className="nav-link text-secondary"
               to="/notifications"
-              onClick={toggleModal} ref={tooltipRef}
-              data-bs-toggle="tooltip" data-bs-placement="top" title="More"
+              onClick={logout} 
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                className="bi bi-three-dots"
-                viewBox="0 0 16 16"
-              >
-                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
-              </svg>
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-box-arrow-right" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+              <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+            </svg>
             </button>
           </ul>
-        </div>
+    
       </nav>
     </>
   );

@@ -176,11 +176,11 @@ input {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  /* overflow: auto; */
-  position: fixed; /* Stay in place */
+  overflow-y: auto;
+  position: absolute; /* Stay in place */
   top: 0;
   width: 100%; /* Full width */
-  z-index: 1; /* Sit on top */
+  z-index: 1500; /* Sit on top */
 }
 
 .signup::before {
