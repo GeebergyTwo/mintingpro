@@ -61,30 +61,6 @@ const initializeTooltip = (element) => {
     );
   };
 
-  // const handleCopy = () => {
-  //   // Create a temporary input element to facilitate copying
-  //   const tempInput = document.createElement('input');
-    
-  //   // Set the value of the input to the referral ID
-  //   tempInput.value = `https://dripdash.netlify.app/login?ref=${referralCode}`;
-    
-  //   // Append the input element to the DOM (not visible)
-  //   document.body.appendChild(tempInput);
-    
-  //   // Select the text in the input
-  //   tempInput.select();
-    
-  //   // Execute the copy command
-  //   document.execCommand('copy');
-    
-  //   // Remove the temporary input element from the DOM
-  //   document.body.removeChild(tempInput);
-
-  //   // Optionally, provide feedback to the user (e.g., a tooltip or notification)
-  //   toast.info('Referral link copied to clipboard!', {
-  //     position: toast.POSITION.TOP_CENTER,
-  //   });
-  // };
 
 
   return (
