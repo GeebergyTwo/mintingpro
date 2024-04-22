@@ -70,7 +70,7 @@ const saveBtcTransactionData = async (transactionReference, email, amount, userI
       transactionType,
       paymentID,
     };
-    await fetch(`https://broker-nel-app.onrender.com/api/createTransactions`,
+    await fetch(`https://broker-base.onrender.com/api/createTransactions`,
    {
     method: 'POST',
     headers: {
@@ -114,7 +114,7 @@ const saveTempCryptoData = async (userID, payment_id, payment_status, pay_addres
       price_amount,
       order_description
     };
-    await fetch(`https://broker-nel-app.onrender.com/api/saveCryptoPayments`,
+    await fetch(`https://broker-base.onrender.com/api/saveCryptoPayments`,
    {
     method: 'POST',
     headers: {
@@ -146,7 +146,7 @@ const saveTempCryptoData = async (userID, payment_id, payment_status, pay_addres
 
   
   const getUserDetail = async (userID) => {
-    await fetch(`https://broker-nel-app.onrender.com/api/userDetail/${userID}`)
+    await fetch(`https://broker-base.onrender.com/api/userDetail/${userID}`)
     .then(response => {
        if (!response.ok) {
          throw new Error(`HTTP error! Status: ${response.status}`);
@@ -239,7 +239,7 @@ const debitUser = (ticketFee) =>{
   if (userBalance >= ticketFee && ticketFee !== null){
       const addParticipant = async () => {
           try {
-              await fetch('https://broker-nel-app.onrender.com/api/addParticipant', {
+              await fetch('https://broker-base.onrender.com/api/addParticipant', {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json',

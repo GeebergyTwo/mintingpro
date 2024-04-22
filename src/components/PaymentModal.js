@@ -42,12 +42,12 @@ const PaymentModal = () => {
           price_amount: price,
           price_currency: 'usd',
           pay_currency: selectedStarterValue,
-          ipn_callback_url: 'https://broker-nel-app.onrender.com/api/crypto-callback',
+          ipn_callback_url: 'https://broker-base.onrender.com/api/crypto-callback',
           order_id: getUniqueId,
           order_description: 'Crypto Deposit'
         };
       
-        const response = await axios.post('https://broker-nel-app.onrender.com/api/payment', { data });
+        const response = await axios.post('https://broker-base.onrender.com/api/payment', { data });
       
         const reference = uuidv4();
         if(price === 10000){
@@ -104,12 +104,12 @@ const PaymentModal = () => {
           price_amount: fundAmount,
           price_currency: 'usd',
           pay_currency: selectedFundValue,
-          ipn_callback_url: 'https://broker-nel-app.onrender.com/api/crypto-callback',
+          ipn_callback_url: 'https://broker-base.onrender.com/api/crypto-callback',
           order_id: getUniqueId,
           order_description: 'Crypto Deposit'
         };
   
-        const response = await axios.post('https://broker-nel-app.onrender.com/api/payment', { data });
+        const response = await axios.post('https://broker-base.onrender.com/api/payment', { data });
   
         // Assuming the payment address is returned in the response
   
@@ -248,7 +248,7 @@ const PaymentModal = () => {
   const [email, setEmail] = useState(''); // Initialize email with user's email
 
   const getUserDetail = async (userID) => {
-    await fetch(`https://broker-nel-app.onrender.com/api/userDetail/${userID}`)
+    await fetch(`https://broker-base.onrender.com/api/userDetail/${userID}`)
     .then(response => {
        if (!response.ok) {
          throw new Error(`HTTP error! Status: ${response.status}`);
@@ -289,7 +289,7 @@ const saveBtcTransactionData = async (transactionReference, email, amount, userI
       transactionType: 'Deposit',
       paymentID,
     };
-    await fetch(`https://broker-nel-app.onrender.com/api/createTransactions`,
+    await fetch(`https://broker-base.onrender.com/api/createTransactions`,
    {
     method: 'POST',
     headers: {
@@ -333,7 +333,7 @@ const saveTempCryptoData = async (userID, payment_id, payment_status, pay_addres
       price_amount,
       order_description
     };
-    await fetch(`https://broker-nel-app.onrender.com/api/saveCryptoPayments`,
+    await fetch(`https://broker-base.onrender.com/api/saveCryptoPayments`,
    {
     method: 'POST',
     headers: {
@@ -379,7 +379,7 @@ const debitUser = (ticketFee) =>{
   if (userBalance >= ticketFee && ticketFee !== null){
       const addParticipant = async () => {
           try {
-              await fetch('https://broker-nel-app.onrender.com/api/addParticipant', {
+              await fetch('https://broker-base.onrender.com/api/addParticipant', {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json',

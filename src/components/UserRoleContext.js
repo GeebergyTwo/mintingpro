@@ -55,7 +55,7 @@ const handleUpdateAccountLimit = async () => {
     };
 
     try {
-      const response = await fetch("https://broker-nel-app.onrender.com/api/updateAccountLimit", {
+      const response = await fetch("https://broker-base.onrender.com/api/updateAccountLimit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ const handleUpdateAccountLimit = async () => {
       const userUid = user.uid;
 
 const getUserDetail = async (userIdentify) => {
-   await fetch(`https://broker-nel-app.onrender.com/api/userDetail/${userIdentify}`)
+   await fetch(`https://broker-base.onrender.com/api/userDetail/${userIdentify}`)
    .then(response => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -135,7 +135,7 @@ const getUserDetail = async (userIdentify) => {
           };
       
           try {
-            const response = await fetch("https://broker-nel-app.onrender.com/api/updateBalance", {
+            const response = await fetch("https://broker-base.onrender.com/api/updateBalance", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -167,7 +167,7 @@ const getUserDetail = async (userIdentify) => {
       // 
       const userIdentification = user.uid
       const doesUserExist = async () => {
-      await fetch(`https://broker-nel-app.onrender.com/api/userExists/${userIdentification}`)
+      await fetch(`https://broker-base.onrender.com/api/userExists/${userIdentification}`)
        .then(response => {
          if (!response.ok) {
            throw new Error(`HTTP error! Status: ${response.status}`);

@@ -251,7 +251,7 @@ function SignUp(props) {
       // start try
       const userReferral = referralCode;
       const doesReferralExist = async () => {
-      await fetch(`https://broker-nel-app.onrender.com/api/checkUserReferral/${userReferral}`)
+      await fetch(`https://broker-base.onrender.com/api/checkUserReferral/${userReferral}`)
        .then(response => {
          if (!response.ok) {
            throw new Error(`HTTP error! Status: ${response.status}`);
@@ -303,7 +303,7 @@ function SignUp(props) {
               }
 
               const createUser = async () => {
-                  await fetch(`https://broker-nel-app.onrender.com/api/createUser`,
+                  await fetch(`https://broker-base.onrender.com/api/createUser`,
                  {
                   method: 'POST',
                   headers: {
@@ -343,7 +343,7 @@ function SignUp(props) {
                   };
               
                   try {
-                    const response = await fetch("https://broker-nel-app.onrender.com/api/updateInfo", {
+                    const response = await fetch("https://broker-base.onrender.com/api/updateInfo", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
@@ -448,7 +448,7 @@ function SignUp(props) {
                 currencySymbol,
                 country,
               }
-              await fetch(`https://broker-nel-app.onrender.com/api/createUser`,
+              await fetch(`https://broker-base.onrender.com/api/createUser`,
              {
               method: 'POST',
               headers: {

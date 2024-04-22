@@ -13,7 +13,7 @@ const BtcWithdrawList = () => { // Rename the function to start with an uppercas
 
   const fetchPendingBtcFundings = async () => {
     try {
-      const response = await fetch('https://broker-nel-app.onrender.com/api/getBtcWithdrawals');
+      const response = await fetch('https://broker-base.onrender.com/api/getBtcWithdrawals');
       const transactions = await response.json();
       setBtcTx(transactions);
     } catch (error) {
@@ -24,7 +24,7 @@ const BtcWithdrawList = () => { // Rename the function to start with an uppercas
   // change state of btc tasks (transactions and temp data);
   const updateUserBalance = async (transactionId, newStatus, userId, price_amount) => {
     try {
-      const response = await fetch(`https://broker-nel-app.onrender.com/api/updateUserWithdrawal/${transactionId}`, {
+      const response = await fetch(`https://broker-base.onrender.com/api/updateUserWithdrawal/${transactionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
