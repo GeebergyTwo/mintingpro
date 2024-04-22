@@ -355,7 +355,7 @@ const debitUser = (ticketFee) =>{
                     <input
                       type="text"
                       value={userAddress}
-                      placeholder={`${selectedValue === 'crypto' && selectedValue.trim() !== '' ? 'Paste your bitcoin wallet address' : 'Bank Name'}`}
+                      placeholder={`${selectedValue === 'crypto' && selectedValue.trim() !== '' ? `Paste your ${selectedStarterValue} wallet address` : 'Bank Name'}`}
                       onChange={(e) => setUserAddress(e.target.value)}
                       className='form-control mt-4'
                     />

@@ -26,7 +26,7 @@ const Dashboard = () => {
         const tempInput = document.createElement('input');
         
         // Set the value of the input to the referral ID
-        tempInput.value = `https://nexusfxinvestment.netlify.app/login?ref=${referralCode}`;
+        tempInput.value = `https://nexusfx.netlify.app/login?ref=${referralCode}`;
         
         // Append the input element to the DOM (not visible)
         document.body.appendChild(tempInput);

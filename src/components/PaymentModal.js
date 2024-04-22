@@ -139,7 +139,32 @@ const PaymentModal = () => {
     }
   };
   
+  const handleFundCopy = () => {
+    // Create a temporary input element to facilitate copying
+    const tempInput = document.createElement('input');
+    
+    // Set the value of the input to the referral ID
+    tempInput.value = fundAddress;
+    
+    // Append the input element to the DOM (not visible)
+    document.body.appendChild(tempInput);
+    
+    // Select the text in the input
+    tempInput.select();
+    
+    // Execute the copy command
+    document.execCommand('copy');
+    
+    // Remove the temporary input element from the DOM
+    document.body.removeChild(tempInput);
 
+    // Optionally, provide feedback to the user (e.g., a tooltip or notification)
+    toast.info('Wallet Address Copied!', {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  };
+
+  
   const handleCopy = () => {
     // Create a temporary input element to facilitate copying
     const tempInput = document.createElement('input');
@@ -436,7 +461,7 @@ const debitUser = (ticketFee) =>{
 <div className='d-flex align-items-center justify-content-between'>
 <input className='bg-light-sec border border-secondary p-3' type="text" readOnly value={fundAddress} />  
 {/* place your handle copy on this button */}
-<button className='remove-btn-style'><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+<button className='remove-btn-style' onClick={handleFundCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
   <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
 </svg></button>
 </div>
