@@ -62,7 +62,7 @@ const PaymentModal = () => {
         else if(price === 300){
           setPaymentAddress(response.data.pay_address);
         }
-      
+        
         saveBtcTransactionData(reference, userEmail, price, userID, 'pending', response.data.payment_id);
         saveTempCryptoData(userID, response.data.payment_id, response.data.payment_status, response.data.pay_address, response.data.price_amount, response.data.order_description)
         setIsBtnLoading(false);
@@ -165,6 +165,85 @@ const PaymentModal = () => {
     });
   };
 
+  // gold copy
+  
+  const handleCopyGold = () => {
+    // Create a temporary input element to facilitate copying
+    const tempInput = document.createElement('input');
+    
+    // Set the value of the input to the referral ID
+    tempInput.value = goldPaymentAddress;
+    
+    // Append the input element to the DOM (not visible)
+    document.body.appendChild(tempInput);
+    
+    // Select the text in the input
+    tempInput.select();
+    
+    // Execute the copy command
+    document.execCommand('copy');
+    
+    // Remove the temporary input element from the DOM
+    document.body.removeChild(tempInput);
+
+    // Optionally, provide feedback to the user (e.g., a tooltip or notification)
+    toast.info('Wallet Address Copied!', {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  };
+  // prof copy
+  
+  const handleCopyPro = () => {
+    // Create a temporary input element to facilitate copying
+    const tempInput = document.createElement('input');
+    
+    // Set the value of the input to the referral ID
+    tempInput.value = professionalPaymentAddress;
+    
+    // Append the input element to the DOM (not visible)
+    document.body.appendChild(tempInput);
+    
+    // Select the text in the input
+    tempInput.select();
+    
+    // Execute the copy command
+    document.execCommand('copy');
+    
+    // Remove the temporary input element from the DOM
+    document.body.removeChild(tempInput);
+
+    // Optionally, provide feedback to the user (e.g., a tooltip or notification)
+    toast.info('Wallet Address Copied!', {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  };
+
+  // copy expert
+  
+  const handleCopyExpert = () => {
+    // Create a temporary input element to facilitate copying
+    const tempInput = document.createElement('input');
+    
+    // Set the value of the input to the referral ID
+    tempInput.value = expertPaymentAddress;
+    
+    // Append the input element to the DOM (not visible)
+    document.body.appendChild(tempInput);
+    
+    // Select the text in the input
+    tempInput.select();
+    
+    // Execute the copy command
+    document.execCommand('copy');
+    
+    // Remove the temporary input element from the DOM
+    document.body.removeChild(tempInput);
+
+    // Optionally, provide feedback to the user (e.g., a tooltip or notification)
+    toast.info('Wallet Address Copied!', {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  };
 // 
   const [email, setEmail] = useState(''); // Initialize email with user's email
 
@@ -382,7 +461,7 @@ const debitUser = (ticketFee) =>{
   <option value="">Select Payment Option</option>
   <option value="btc">Bitcoin</option>
   <option value="eth">Ethereum</option>
-  <option value="xrp">Ripple</option>
+  {/* <option value="bnb">BNB (BEP20 Network)</option> */}
 </select>
 </div>
 </>
@@ -397,6 +476,10 @@ const debitUser = (ticketFee) =>{
     borderRadius : '50%',
   }}/></> : 'Make a deposit'}
 </button>}
+{/* deposit with bank */}
+<div className='mt-2 justify-content-end'>
+<a href="mailto:dripdash.business@gmail.com">Send us an email </a> to deposit with your bank.
+</div>
 </div>
 
 </div>
@@ -428,7 +511,7 @@ const debitUser = (ticketFee) =>{
               <option value="">Select Payment Option</option>
               <option value="btc">Bitcoin</option>
               <option value="eth">Ethereum</option>
-              <option value="xrp">Ripple</option>
+              {/* <option value="usdt">Tether (USDT)</option> */}
             </select>
           </div>
           }
@@ -440,6 +523,7 @@ const debitUser = (ticketFee) =>{
               <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
             </svg></button>
           </div>
+
           </> }
           {errorMessage && <p>{errorMessage}</p>}
         </div>
@@ -463,7 +547,10 @@ const debitUser = (ticketFee) =>{
         </div>
         }
 
-        
+        {/* deposit with bank */}
+        <div className='mt-2 justify-content-end'>
+        <a href="mailto:dripdash.business@gmail.com">Send us an email </a> to deposit with your bank.
+        </div>
       </div>
               </div>
         </div>
@@ -497,7 +584,7 @@ const debitUser = (ticketFee) =>{
               <option value="">Select Payment Option</option>
               <option value="btc">Bitcoin</option>
               <option value="eth">Ethereum</option>
-              <option value="xrp">Ripple</option>
+              {/* <option value="usdt">Tether (USDT)</option> */}
             </select>
           </div>
           }
@@ -505,7 +592,7 @@ const debitUser = (ticketFee) =>{
           {goldPaymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
           <div className='d-flex align-items-start justify-content-between'>
           <input className='bg-light-sec' type="text" readOnly value={goldPaymentAddress} />  
-            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+            <button className='remove-btn-style' onClick={handleCopyGold}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
             </svg></button>
           </div>
@@ -533,6 +620,11 @@ const debitUser = (ticketFee) =>{
         </div>
         </div>
         }
+
+        {/* deposit with bank */}
+        <div className='mt-2 justify-content-end'>
+        <a href="mailto:dripdash.business@gmail.com">Send us an email </a> to deposit with your bank.
+        </div>
 
         
       </div>
@@ -563,7 +655,7 @@ const debitUser = (ticketFee) =>{
               <option value="">Select Payment Option</option>
               <option value="btc">Bitcoin</option>
               <option value="eth">Ethereum</option>
-              <option value="xrp">Ripple</option>
+              {/* <option value="usdt">Tether (USDT)</option> */}
             </select>
           </div>
           }
@@ -571,7 +663,7 @@ const debitUser = (ticketFee) =>{
           {professionalPaymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
           <div className='d-flex align-items-start justify-content-between'>
           <input className='bg-light-sec' type="text" readOnly value={professionalPaymentAddress} />  
-            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+            <button className='remove-btn-style' onClick={handleCopyPro}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
             </svg></button>
           </div>
@@ -600,6 +692,10 @@ const debitUser = (ticketFee) =>{
         </div>
         }
 
+        {/* deposit with bank */}
+        <div className='mt-2 justify-content-end'>
+        <a href="mailto:dripdash.business@gmail.com">Send us an email </a> to deposit with your bank.
+        </div>
         
       </div>
               </div>
@@ -629,7 +725,7 @@ const debitUser = (ticketFee) =>{
               <option value="">Select Payment Option</option>
               <option value="btc">Bitcoin</option>
               <option value="eth">Ethereum</option>
-              <option value="xrp">Ripple</option>
+              {/* <option value="usdt">Tether (USDT)</option> */}
             </select>
           </div>
           }
@@ -637,7 +733,7 @@ const debitUser = (ticketFee) =>{
           {expertPaymentAddress && <><p>Send your {selectedStarterValue} to this wallet address:</p>
           <div className='d-flex align-items-start justify-content-between'>
           <input className='bg-light-sec' type="text" readOnly value={expertPaymentAddress} />  
-            <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
+            <button className='remove-btn-style' onClick={handleCopyExpert}><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-copy text-theme mx-2" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
             </svg></button>
           </div>
@@ -665,6 +761,11 @@ const debitUser = (ticketFee) =>{
         </div>
         </div>
         }
+
+        {/* deposit with bank */}
+        <div className='mt-2 justify-content-end'>
+        <a href="mailto:dripdash.business@gmail.com">Send us an email </a> to deposit with your bank.
+        </div>
         
       </div>
               </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import Context from './Context';
+import ErrorBoundary from './components/ErrorBoundary';
 import { FirebaseProvider } from './components/UserRoleContext';
 import Home from './components/Home';
 import Login from './components/Login';
@@ -17,6 +18,7 @@ import PaymentModal from './components/PaymentModal';
 import TransactionList from './components/Transactions';
 import PrivateDashboard from './components/PrivateDashboard';
 import Dashboard from './components/dashboard';
+import ToastProvider from './components/ToastProvider';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +41,10 @@ function App() {
   return (
     <Context.Provider value={{ isLoading, setIsLoading, user, setUser, cometChat, selectedFrom, setSelectedFrom, selectedTo, setSelectedTo, rideRequest, setRideRequest, currentRide, setCurrentRide, ridePrice, setRidePrice }}>
       <FirebaseProvider>
+      
         <Router>
+        <ErrorBoundary>
+          <ToastProvider>
             <Navbar />
             <Routes>
               <Route exact path="/" element={<PrivateRoute exact path="/" element={<Home />} />} />
@@ -62,9 +67,11 @@ function App() {
               
               <Route exact path="/profile" element={<PrivateDashboard exact path="/profile" element={<Dashboard/>} />} />
 
-              {/* <Route exact path="/leaderboard" element={<Leaderboard/>} /> */}
+        
      
             </Routes>
+            </ToastProvider>
+            </ErrorBoundary>
           {isLoading && <Loading />}
         </Router>
       </FirebaseProvider>

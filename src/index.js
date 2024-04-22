@@ -7,10 +7,15 @@ import './styles.css'
 import './secondStyle.css';
 import { BrowserRouter } from "react-router-dom";
 
-
+import * as Sentry from '@sentry/react';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
+Sentry.init({
+  dsn: 'https://ac14dfda4deedcd73612d6cadabd6a3f@o4505685332721664.ingest.sentry.io/4505685339406336',
+  integrations: [new Sentry.BrowserTracing()],
+  tracesSampleRate: 1.0,
+});
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

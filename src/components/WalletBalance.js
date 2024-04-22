@@ -37,6 +37,7 @@ const [recipientName, setRecipientName] = useState('');
   // State to manage the selected value of the dropdown
   const [selectedValue, setSelectedValue] = useState('');
   const [selectedStarterValue, setSelectedStarterValue] = useState('');
+  const [memoTag, setMemoTag] = useState('');
 
   const generateTransactionReference = (length) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -188,6 +189,12 @@ const saveTempCryptoData = async (userID, payment_id, payment_status, pay_addres
         toastId: 'toast-wt-fail1',
       });
     }
+    else if(selectedStarterValue === 'xrp' && memoTag.trim() === ''){
+      setIsLoading(false);
+      toast.error(`Invalid memo tag!`, {
+        toastId: 'toast-wtt-fail',
+      });
+    }
     else if(userBalance < amount){
       setIsLoading(false);
       toast.error(`Insufficient Funds!`, {
@@ -325,10 +332,21 @@ const debitUser = (ticketFee) =>{
                       <option value="">Select Payment Option</option>
                       <option value="btc">Bitcoin</option>
                       <option value="eth">Ethereum</option>
-                      <option value="xrp">Ripple</option>
+                      {/* <option value="xrp">Ripple</option> */}
                     </select>
                   </div>
                   
+                  {selectedStarterValue === 'xrp' &&
+                  <div>
+                    <input
+                    type="text"
+                    value={memoTag}
+                    placeholder= 'Your XRP memo tag'
+                    onChange={(e) => setMemoTag(e.target.value)}
+                    className='form-control mt-4'
+                  />
+                  </div>
+                  }
                     </>
                   }
                   

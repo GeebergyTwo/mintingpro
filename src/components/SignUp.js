@@ -513,7 +513,7 @@ function SignUp(props) {
     <div className="signup">
       <ToastContainer />
       <div className="signup__content">
-      <p className="fw-bold font-italic m-2 text-end">Nexus.<span className="bg-theme border-theme text-white rounded-pill">fx</span>.investment blog</p>
+      <p className="fw-bold font-italic m-2 text-end">Nexus<span className="bg-theme border-theme text-white rounded-pill">fx</span>investment</p>
         <div className="signup__container">
           <div className="signup__title text-theme">Sign Up</div>
           <div className="signup__close">
