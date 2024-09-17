@@ -89,7 +89,7 @@ router.post("/addUser", async (request, response) => {
     // 5. Hash the password before saving the user
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 6. Save the user details
+    // 6. Save the user details with a starting balance of 2700
     const newUser = new User({
       username,
       email,
@@ -97,10 +97,25 @@ router.post("/addUser", async (request, response) => {
       password: hashedPassword, // Save the hashed password
       walletAddress,
       userReferralCode,
-      referredBy: referralCode !== 'none' ? referralCode : null // Save referralCode as null if not provided
+      referredBy: referralCode !== 'none' ? referralCode : null, // Save referralCode as null if not provided
+      balance: 2700 // Add 2700 naira as the starting balance
     });
 
     await newUser.save();
+
+    // Create transaction records
+    await Transaction.create({
+      userID: newUser._id,
+      email: newUser.email,
+      description: 'Sign up bonus ',
+      amount: 2700,
+      transactionType: 'credit',
+      status: 'success',
+      planType: 'Standard',
+      transactionReference: 'tx-' + new Date().getTime(),
+      currencyCode: 'NGN',
+      paymentMethod: 'token_transfer',
+    });
 
     // 7. If referral code is valid, increment inactiveReferrals for the referring user
     if (referringUser) {
@@ -115,7 +130,8 @@ router.post("/addUser", async (request, response) => {
         email: newUser.email,
         phone_no: newUser.phone_no,
         walletAddress: newUser.walletAddress,
-        userReferralCode: newUser.userReferralCode
+        userReferralCode: newUser.userReferralCode,
+        balance: newUser.balance // Return the balance
       }
     });
 
@@ -128,6 +144,7 @@ router.post("/addUser", async (request, response) => {
     });
   }
 });
+
 
 // Login
 router.post("/login", async (req, res) => {
