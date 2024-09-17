@@ -19,7 +19,7 @@ export const UserProvider = ({ children }) => {
     const fetchUserData = async () => {
       if (userId) {
         try {
-          const response = await axios.get(`http://localhost:3003/api/getUserData/${userId}`);
+          const response = await axios.get(`https://mintingpro.onrender.com/api/getUserData/${userId}`);
           setUserData(response.data);
         } catch (error) {
           console.error('Error retrieving user:', error);
@@ -33,7 +33,7 @@ export const UserProvider = ({ children }) => {
 
   const handleGetUser = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:3003/api/getUserData/${userId}`);
+      const response = await axios.get(`https://mintingpro.onrender.com/api/getUserData/${userId}`);
       setUserData(response.data);
     } catch (error) {
       console.error('Error retrieving user:', error);

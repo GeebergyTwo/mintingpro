@@ -19,7 +19,7 @@ const TransactionList = () => {
     const fetchTransactions = async () => {
       try {
         setLoading(true); // Set loading to true before fetching data
-        const response = await axios.get(`http://localhost:3003/api/transactions`, {
+        const response = await axios.get(`https://mintingpro.onrender.com/api/transactions`, {
           params: { userID } // Pass userID as query parameter
         });
 

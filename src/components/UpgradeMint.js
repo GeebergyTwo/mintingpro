@@ -48,7 +48,7 @@ function UpgradeMint() {
   
     try {
       const response = await axios.post(
-        'http://localhost:3003/api/createTransaction',
+        'https://mintingpro.onrender.com/api/createTransaction',
         txDetails, // Automatically handles stringification
         {
           headers: {
@@ -71,7 +71,7 @@ function UpgradeMint() {
   const updateUserPlan = async (amount, planType) => {
     try {
       const response = await axios.post(
-        'http://localhost:3003/api/updateUserPlan',
+        'https://mintingpro.onrender.com/api/updateUserPlan',
         {
           userID: userData._id,  // ID of the current user
           planType,   // Type of plan user has paid for

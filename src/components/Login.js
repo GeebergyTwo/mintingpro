@@ -41,7 +41,7 @@ function Login(props) {
 
     if (isUserCredentialsValid(emailOrUsername, password)) {
       try {
-        const response = await axios.post("http://localhost:3003/api/login", {
+        const response = await axios.post("https://mintingpro.onrender.com/api/login", {
           emailOrUsername,
           password,
         });

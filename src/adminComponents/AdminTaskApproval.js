@@ -18,7 +18,7 @@ function AdminTaskApproval() {
   useEffect(() => {
     const fetchAllPendingTasks = async () => {
       try {
-        const response = await axios.get('http://localhost:3003/api/allPendingTasks'); // Adjust this to get all pending tasks
+        const response = await axios.get('https://mintingpro.onrender.com/api/allPendingTasks'); // Adjust this to get all pending tasks
         setPendingTasks(response.data.pendingTasks);
         setLoading(false);
       } catch (err) {
@@ -33,7 +33,7 @@ function AdminTaskApproval() {
   const handleTaskApproval = async (taskId, status) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:3003/api/updateTaskStatus', { taskID: taskId, status });
+      await axios.post('https://mintingpro.onrender.com/api/updateTaskStatus', { taskID: taskId, status });
       setPendingTasks(pendingTasks.filter((task) => task._id !== taskId));
       setLoading(false);
       toast.success("Task updated successfully.", {

@@ -70,7 +70,7 @@ function SendAndReceive() {
 
 
     try {
-      const response = await axios.post('http://localhost:3003/api/transfer', {
+      const response = await axios.post('https://mintingpro.onrender.com/api/transfer', {
         senderId: userData._id, // Ensure this is available in your context
         receiverAddress,
         amount: amountInNaira,

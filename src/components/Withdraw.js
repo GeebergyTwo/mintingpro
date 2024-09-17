@@ -109,7 +109,7 @@ function Withdraw() {
   
     try {
       const response = await axios.post(
-        'http://localhost:3003/api/createTransaction',
+        'https://mintingpro.onrender.com/api/createTransaction',
         txDetails, // Automatically handles stringification
         {
           headers: {
@@ -140,7 +140,7 @@ function Withdraw() {
     setLoading(true);
     
     try {
-      const response = await axios.post('http://localhost:3003/api/debitMintPoints', {
+      const response = await axios.post('https://mintingpro.onrender.com/api/debitMintPoints', {
         userID: userData._id,
         debitAmount: parseFloat(convertedAmount)
       });

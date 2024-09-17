@@ -89,7 +89,7 @@ function SignUp() {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:3003/api/addUser', userData);
+      const response = await axios.post('https://mintingpro.onrender.com/api/addUser', userData);
       toast.success("User Account Created Successfully", { position: toast.POSITION.TOP_CENTER });
       setIsLoading(false);
       // Delay navigation for 3 seconds (3000 ms)

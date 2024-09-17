@@ -42,7 +42,7 @@ function Home() {
     useEffect(() => {
       const fetchTasks = async () => {
         try {
-          const response = await axios.get(`http://localhost:3003/api/allTasks/${userId}`);
+          const response = await axios.get(`https://mintingpro.onrender.com/api/allTasks/${userId}`);
           setTasks(response.data.tasks); // All tasks from the Task collection
           setCompletedTasks(response.data.completedTasks); // IDs of tasks the user has completed
           setLoading(false);
@@ -58,7 +58,7 @@ function Home() {
     useEffect(() => {
       const fetchPendingTasks = async () => {
         try {
-          const response = await axios.get(`http://localhost:3003/api/pendingTasks/${userId}`);
+          const response = await axios.get(`https://mintingpro.onrender.com/api/pendingTasks/${userId}`);
           setPendingTasks(response.data.pendingTasks);
         } catch (error) {
           console.error('Error fetching pending tasks:', error);
@@ -72,7 +72,7 @@ function Home() {
     const handleCompleteTask = async (taskId) => {
       try {
         // Send a request to the backend to mark the task as completed
-        await axios.post(`http://localhost:3003/api/completTask/${userId}`, { taskId });
+        await axios.post(`https://mintingpro.onrender.com/api/completTask/${userId}`, { taskId });
   
         // Update the local state to reflect the completed task
         setCompletedTasks((prevCompletedTasks) => [...prevCompletedTasks, taskId]);
@@ -134,7 +134,7 @@ const handleFileChange = (taskId, taskDescription, taskPoints) => async (event) 
           // Save task proof to 'pendingTasks'
           const saveTaskProof = async () => {
             try {
-              const response = await fetch('http://localhost:3003/api/addToPending', {
+              const response = await fetch('https://mintingpro.onrender.com/api/addToPending', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
