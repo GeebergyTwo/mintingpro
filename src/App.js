@@ -1,81 +1,60 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './index.css';
-import Context from './Context';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './styles/index.css';
 import ErrorBoundary from './components/ErrorBoundary';
-import { FirebaseProvider } from './components/UserRoleContext';
-import Home from './components/Home';
+import { UserProvider } from './functionalComponents/UserRoleContext';
+import Loading from './functionalComponents/Loading';
+import PrivateRoute from './routes/PrivateRoute';
+import PrivateDashboard from './routes/PrivateDashboard';
+import PrivateFaqs from './routes/PrivateFaqs';
+import PrivateMint from './routes/PrivateMint';
+import PrivateWithdraw from './routes/PrivateWithdraw';
+import PrivateUpgrade from './routes/PrivateUpgrade';
+import PrivateAbout from './routes/PrivateAbout';
+import PrivateTx from './routes/PrivateTx';
+import PrivateSendAndReceive from './routes/PrivateSendAndReceive';
 import Login from './components/Login';
-import Loading from './components/Loading';
-import PrivateRoute from './components/PrivateRoute';
-import PrivateActivate from './components/PrivateActivate';
-import PrivateBalance from './components/PrivateBalance';
-import PrivateTx from './components/PrivateTx';
 import SignUp from './components/SignUp';
-import Navbar from './components/Navbar';
-import WalletBalance from './components/WalletBalance';
-import PaymentModal from './components/PaymentModal';
+import Sidebar from './components/Navbar';
+import Home from './components/Home';
+import FAQS from './components/FAQS';
+import MintPower from './components/MintPower';
+import Withdraw from './components/Withdraw';
+import UpgradeMint from './components/UpgradeMint';
+import About from './components/About';
 import TransactionList from './components/Transactions';
-import PrivateDashboard from './components/PrivateDashboard';
 import Dashboard from './components/dashboard';
-import ToastProvider from './components/ToastProvider';
+import SendAndReceive from './components/SendAndReceive';
+import ToastProvider from './functionalComponents/ToastProvider';
+import { Container } from 'react-bootstrap';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState(null);
-  const [cometChat, setCometChat] = useState(null);
-  const [selectedFrom, setSelectedFrom] = useState(null);
-  const [selectedTo, setSelectedTo] = useState(null);
-  const [rideRequest, setRideRequest] = useState(null);
-  const [currentRide, setCurrentRide] = useState(null);
-  const [ridePrice, setRidePrice] = useState(null);
-
-
-  const initAuthUser = () => {
-    const authenticatedUser = localStorage.getItem('auth');
-    if (authenticatedUser) {
-      setUser(JSON.parse(authenticatedUser));
-    }
-  };
 
   return (
-    <Context.Provider value={{ isLoading, setIsLoading, user, setUser, cometChat, selectedFrom, setSelectedFrom, selectedTo, setSelectedTo, rideRequest, setRideRequest, currentRide, setCurrentRide, ridePrice, setRidePrice }}>
-      <FirebaseProvider>
-      
+      <UserProvider>
         <Router>
-        <ErrorBoundary>
-          <ToastProvider>
-            <Navbar />
-            <Routes>
-              <Route exact path="/" element={<PrivateRoute exact path="/" element={<Home />} />} />
-              <Route
-                exact
-                path="/login"
-                element={<Login />}
-              />
-              <Route
-                exact
-                path="/signup"
-                element={<SignUp />}
-              />
-              <Route exact path="/withdraw" element={<PrivateBalance exact path="/withdraw" element={<WalletBalance/>} />} />
-    
-              <Route exact path="/transactions" element={<PrivateTx exact path="/transactions" element={<TransactionList/>} />} />
-   
-              <Route exact path="/investment_plans" element={<PrivateActivate exact path="/investment_plans" element={<PaymentModal/>} />} />
-
-              
-              <Route exact path="/profile" element={<PrivateDashboard exact path="/profile" element={<Dashboard/>} />} />
-
-        
-     
-            </Routes>
-            </ToastProvider>
-            </ErrorBoundary>
+          <ErrorBoundary>
+            {/* <ToastProvider> */}
+              <Sidebar />
+                  <Routes>
+                    <Route path="/" element={<PrivateRoute element={<Home />} />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/faqs" element={<PrivateFaqs element={<FAQS />} />} />
+                    <Route path="/mint" element={<PrivateMint element={<MintPower />} />} />
+                    <Route path="/withdraw" element={<PrivateWithdraw element={<Withdraw />} />} />
+                    <Route path="/upgrade" element={<PrivateUpgrade element={<UpgradeMint />} />} />
+                    <Route path="/about" element={<PrivateAbout element={<About />} />} />
+                    <Route path="/transactions" element={<PrivateTx element={<TransactionList />} />} />
+                    <Route path="/profile" element={<PrivateDashboard element={<Dashboard />} />} />
+                    <Route path="/transfer" element={<PrivateSendAndReceive element={<SendAndReceive />} />} />
+                  </Routes>
+            {/* </ToastProvider> */}
+          </ErrorBoundary>
           {isLoading && <Loading />}
         </Router>
-      </FirebaseProvider>
-    </Context.Provider>
+      </UserProvider>
   );
 }
 

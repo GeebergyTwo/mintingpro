@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import './styles.css'
-import './secondStyle.css';
+import './styles/index.css';
+import './styles/styles.css'
+import './styles/secondStyle.css';
 import { BrowserRouter } from "react-router-dom";
 
 import * as Sentry from '@sentry/react';

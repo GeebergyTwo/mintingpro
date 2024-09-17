@@ -1,138 +1,176 @@
-import React from 'react';
-import { Container, Row, Col, Card, Accordion, Button, Table} from 'react-bootstrap';
-import {Link, useMatch, useResolvedPath, useNavigate} from 'react-router-dom';
-import { useFirebase } from './UserRoleContext';
+import React, { useEffect, useState } from 'react';
+import { Container } from 'react-bootstrap';
+import { useUser } from '../functionalComponents/UserRoleContext';
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faCopy } from '@fortawesome/free-solid-svg-icons';
+import Loading from '../functionalComponents/Loading';
 
 const Dashboard = () => {
-    const CustomLink = ({ to, children, ...props }) => {
-        const resolvedPath = useResolvedPath(to);
-        const isActive = useMatch({ path: resolvedPath.pathname, end: true });
-      
-        return (
-          <li className={isActive ? 'active' : ''}>
-            <Link to={to} {...props}>
-              {children}
-            </Link>
-          </li>
-        );
-      };
+  const { userData, handleGetUser } = useUser();
+  const [loading, setLoading] = useState(true);
+  const storedUserId = localStorage.getItem('auth');
 
-      const { userImg, userEmail, userFullName, userID, userPhoneNo ,userRole, userBalance, slots, setUserBalance, accountLimit, setAccountLimit, referralsBalance, setReferralsBalance, dailyDropBalance, setDailyDropBalance, isUserActive, setIsUserActive, referralsCount, setReferralsCount, totalReferrals, setTotalReferrals, referralCode, setReferralCode, hasPaid, referredUsers, setReferredUsers, adRevenue, setAdRevenue, deposit, setDeposit, currencySymbol, country} = useFirebase();
+  // Fetch user data on component mount
+  useEffect(() => {
+    if (!userData) {
+      handleGetUser(storedUserId).then(() => {
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
+    }
+  }, [userData, handleGetUser]);
 
-      const handleCopy = () => {
-        // Create a temporary input element to facilitate copying
-        const tempInput = document.createElement('input');
-        
-        // Set the value of the input to the referral ID
-        tempInput.value = `https://nexusfx.netlify.app/login?ref=${referralCode}`;
-        
-        // Append the input element to the DOM (not visible)
-        document.body.appendChild(tempInput);
-        
-        // Select the text in the input
-        tempInput.select();
-        
-        // Execute the copy command
-        document.execCommand('copy');
-        
-        // Remove the temporary input element from the DOM
-        document.body.removeChild(tempInput);
+  const handleCopy = () => {
+    const tempInput = document.createElement('input');
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    const referralLink = `${baseUrl}/signup?ref=${userData?.userReferralCode || ''}`;
     
-        // Optionally, provide feedback to the user (e.g., a tooltip or notification)
-        toast.info('Referral link copied to clipboard!', {
-          position: toast.POSITION.TOP_CENTER,
-        });
-      };
+    tempInput.value = referralLink;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
 
-      const handleCopyCode = () => {
-        // Create a temporary input element to facilitate copying
-        const tempInput = document.createElement('input');
-        
-        // Set the value of the input to the referral ID
-        tempInput.value = referralCode;
-        
-        // Append the input element to the DOM (not visible)
-        document.body.appendChild(tempInput);
-        
-        // Select the text in the input
-        tempInput.select();
-        
-        // Execute the copy command
-        document.execCommand('copy');
-        
-        // Remove the temporary input element from the DOM
-        document.body.removeChild(tempInput);
-    
-        // Optionally, provide feedback to the user (e.g., a tooltip or notification)
-        toast.info('Referral Code copied to clipboard!', {
-          position: toast.POSITION.TOP_CENTER,
-        });
-      };
+    toast.info('Referral link copied to clipboard!', {
+      position: toast.POSITION.TOP_CENTER,
+    });
+  };
+
+  const baseMintRate = 0.05; // Mint rate at level 1
+  const levelIncrement = 0.01; // Increment per level
+  const maxLevel = 15;
+  const maxMintRate = 0.19; // Mint rate at level 15
+  
+  const getUserLevel = (mintRate, isUserActive) => {
+    if (!isUserActive || mintRate === 0) {
+      return 'Inactive';
+    }
+  
+    if (mintRate >= maxMintRate) {
+      return maxLevel;
+    }
+  
+    const level = Math.floor((mintRate - baseMintRate) / levelIncrement) + 1;
+  
+    return level < 1 ? 1 : level;
+  };
+  
+  // Ensure mint_rate and isUserActive exist before calculating the user level
+  const userLevel = userData && userData.mint_rate !== undefined && userData.isUserActive !== undefined 
+    ? getUserLevel(userData.mint_rate, userData.isUserActive)
+    : 'Unknown';
+  
+  console.log('User level:', userLevel);
+  
+
+  const scrollContainer = {
+    paddingBottom: '80px',
+    paddingTop: '20px',
+    minHeight: '100vh',
+    background: 'linear-gradient(to bottom, #3c3f4c, #262A36)',
+  };
+
+  const spaceBetween = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottom: '1px solid #fff',
+    padding: '8px',
+  };
+
+  const profilePicContainer = {
+    height: '70px',
+    width: '70px',
+    padding: '10px',
+    border: '2px solid #fff',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    margin: 'auto',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  };
+
+  const profilePic = {
+    height: '100%',
+    width: '100%',
+    objectFit: 'cover',
+  };
+
+  const big = {
+    fontSize: '20px',
+  };
+
+  const bigBold = {
+    fontSize: '34px',
+    fontWeight: 'bold',
+  };
+
+  const levelContainerStyle = {
+    backgroundColor: '#A366FF',
+    color: '#6D00FF',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    display: 'inline-block',
+    fontWeight: 'bold',
+  };
       
   return (
-    <div className='container-fluid' style={{ background: '#13151b', height: '100%', width: '100%', position: 'absolute', overflowY: 'auto', overflowX: 'hidden', marginBottom: '80px' }}>
-         <ToastContainer />
-      {/* User Details */}
-      <Row className="mt-4" style={{ width: '85%', marginLeft: '16.5%', marginRight: '3.5%'}}>
-      <h4 className='text-secondary'>Personal Info</h4>
-        <Col>
-          <Card className='text-secondary' style={{background: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
-            <Card.Body>
-              <Card.Title>User Details</Card.Title>
-              <Card.Text>
-              <div className="ride-detail__user-avatar">
-                <img src={userImg} />
+    <div style={scrollContainer} className='pTop-80'>
+      <ToastContainer />
+      <div className='main-content'>
+      <Container>
+        <h1>Profile Page</h1>
+        <div style={profilePicContainer} className='mt-4'>
+          <FontAwesomeIcon icon={faUser} size="2x" style={profilePic}/>
+        </div>
+        {loading || !userData ? (
+              <span>Loading...</span>
+            ):
+            (
+              <div className="fw-bold mt-2" style={levelContainerStyle}>
+                {userLevel === 'Inactive' ? 'Inactive' : `Level ${userLevel}`}
               </div>
-              {/*  */}
-              <div className='d-flex align-items-center justify-content-between border-bottom border-gray p-2 mb-2'>
-                <span>Username:</span>
-                <span>{userFullName}</span>
-              </div>
-              {/*  */}
-              {/*  */}
-              <div className='d-flex align-items-center justify-content-between border-bottom border-gray p-2 mb-2'>
-                <span>Country:</span>
-                <span>{country}</span>
-              </div>
-              {/*  */}
-              <div className='d-flex align-items-center justify-content-between border-bottom border-gray p-2 mb-2'>
-                <span>Referrals:</span>
-                <span>{referredUsers}</span>
-              </div>
-              {/*  */}
-              <div className='d-flex align-items-center justify-content-between border-bottom border-gray p-2 mb-2'>
-                <span>Referral Link:</span>
-                <button className='remove-btn-style' onClick={handleCopy}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-copy" viewBox="0 0 16 16">
-                    <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
-                  </svg></button>
-              </div>
-              {/*  */}
-              <div className='d-flex align-items-center justify-content-between border-bottom border-gray p-2 mb-2'>
-                <span>Referral Code:</span>
-                <button className='remove-btn-style' onClick={handleCopyCode}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-copy" viewBox="0 0 16 16">
-                    <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/>
-                  </svg></button>
-              </div>
-              {/*  */}
-              <div className='d-flex align-items-center justify-content-between border-bottom border-gray p-2 mb-2'>
-                <span>Account Status:</span>
-                <span className={isUserActive ? 'alert alert-success' : 'alert alert-danger'}>
-                  {isUserActive ? (
-                    'Active'
-                  ) : (
-                    'Inactive'
-                  )}
-                </span>
-              </div>
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+         )}
 
-    
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Referral Link:</p>
+          <FontAwesomeIcon onClick={handleCopy} icon={faCopy} size="2x" />
+        </div>
+
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Username:</p>
+          <p>{userData?.username || ''}</p>
+        </div>
+
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Email:</p>
+          <p>{userData?.email || ''}</p>
+        </div>
+
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Country Of Origin:</p>
+          <p>{userData?.country || ''}</p>
+        </div>
+
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Phone No:</p>
+          <p>{userData?.phone_no || ''}</p>
+        </div>
+
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Inactive Referrals:</p>
+          <p>{userData?.inactiveReferrals || 0}</p>
+        </div>
+
+        <div style={spaceBetween} className='mt-3'>
+          <p className='fw-bold' style={big}>Active Referrals:</p>
+          <p>{userData?.activeReferrals || 0}</p>
+        </div>
+      </Container>
+      </div>
     </div>
   );
 };

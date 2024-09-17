@@ -1,67 +1,139 @@
 import React, { useState, useEffect } from 'react';
-import { useFirebase } from './UserRoleContext';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { ToastContainer, toast } from "react-toastify";
-import BtcFundingList from './btcTaskFund';
-import "react-toastify/dist/ReactToastify.css";
+import axios from 'axios';
+import { useUser } from '../functionalComponents/UserRoleContext';
+import { Container } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import AdminTaskApproval from '../adminComponents/AdminTaskApproval';
+import useCurrencyConverter from '../functionalComponents/useCurrencyConverter';
 
 const TransactionList = () => {
-  const { userImg, userEmail, userID, userRole } = useFirebase();
-  const [userTransactions, setUserTransactions] = useState([]);
+  const { userData } = useUser();
+  const userID = userData ? userData._id : '';
+  const userRole = userData?.role || 'user';
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
-    // Fetch the user's transactions when the component mounts
-    fetchUserTransactions(userID);
+    // Fetch transactions for the logged-in user
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true); // Set loading to true before fetching data
+        const response = await axios.get(`http://localhost:3003/api/transactions`, {
+          params: { userID } // Pass userID as query parameter
+        });
+
+        // Sort transactions by timestamp in descending order
+        const sortedTransactions = response.data.transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        setTransactions(sortedTransactions);
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+      } finally {
+        setLoading(false); // Set loading to false once data is fetched
+      }
+    };
+
+    if (userID) {
+      fetchTransactions(); // Only fetch transactions if userID is available
+    }
   }, [userID]);
 
-  const fetchUserTransactions = async (userID) => {
-    try {
-      const response = await fetch(`https://broker-base.onrender.com/api/getUserTransactions?userID=${userID}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
 
-      const userTransactionsData = await response.json();
 
-      // Sort transactions in ascending order based on a timestamp field
-      userTransactionsData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-      setUserTransactions(userTransactionsData);
-    } catch (error) {
-      console.error('Error fetching user transactions: ', error);
-    }
+  const scrollContainer = {
+    paddingBottom: '80px',
+    paddingTop: '20px',
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+    background: 'linear-gradient(to bottom, #3c3f4c, #262A36)',
   };
-  // Render the userTransactions in your component
+
+  const txContainer = {
+    height: '600px',
+    overflowY: 'scroll',
+  };
+
+  const txContent = {
+    background: '#4A4D61',
+    color: '#fff',
+    padding: '10px',
+    borderRadius: '4px',
+    marginTop: '8px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'start',
+  };
+
+  const leftContent = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'start',
+    padding: '10px',
+  };
+
+  const bigBold = {
+    fontSize: '20px',
+    fontWeight: 'bold',
+  };
+
+  const rightContent = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'end',
+    padding: '10px',
+  };
 
   return (
-    <div className='tx' style={{ background: '#13151b', height: '100%', width: '100%', position: 'absolute', overflowY: 'auto', overflowX: 'hidden', marginBottom: '80px' }}>
-      <ToastContainer />
-    <h2 className='fixed-top mx-auto text-center p-2 text-theme mx-5' style={{background: '#1F222D',}}>Your Transactions</h2>
-    <div className="transaction-list container p-4" style={{ width: '82.5%', marginLeft: '15%', marginRight: '5%', background: '#1F222D', boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)'}}>
-      {userRole === 'crypto-checker' ? (
-        <BtcFundingList />
-      ) : (
-        <>
-      {userTransactions.map((transaction, index) => (
-        <div key={index}
-        className={transaction.status === 'success' ? 'alert alert-success mt-2' : transaction.status === 'pending' ? 'alert alert-warning mt-2' : 'alert alert-danger mt-2'}>
-          <div className="transaction-reference"><span className='bold'>Transaction Reference:</span> {transaction.transactionReference}</div>
-          <div className="tx-type bold">{transaction.transactionType}</div>
-          <div className="transaction-details d-flex justify-content-between">
-            {/* Display other transaction details here */}
-            <span>
-              Transaction {
-                transaction.status === 'success' ? 'Successful' :
-                transaction.status === 'pending' ? 'Pending' :
-                'Failed'
-              }
-            </span> <span>Amount: <span className='bold'>${transaction.amount}</span></span>
-          </div>
-        </div>
-      ))}
-        </>
-      )}
-    </div>
+    <div style={scrollContainer} className='pTop-80'>
+      <div className="main-content" style={txContainer}>
+        <Container>
+          <h1 className='text-center'>Transactions</h1>
+
+          {userData !== null && userRole === 'admin' ? (
+            <AdminTaskApproval />
+          ):
+          (
+            loading ? (
+              <div className="text-center">
+                <FontAwesomeIcon icon={faSpinner} spin style={{ color: '#fff', marginTop: '20px' }} />
+                <p style={{ color: '#fff', marginTop: '10px' }}>Loading transactions...</p>
+              </div>
+            ) :  transactions.length === 0 ? (
+              // Display message when no transactions are available
+              <div className="text-center">
+                <p style={{ color: '#fff', marginTop: '20px' }}>No transactions available.</p>
+              </div>
+            ) :(
+              // Loop through transactions once loading is complete
+              transactions.map((tx) => (
+                <div key={tx._id} style={txContent} className='flex-column-reverse flex-md-row'>
+                  <div style={leftContent}>
+                    <span>{tx.transactionType.charAt(0).toUpperCase() + tx.transactionType.slice(1)}</span>
+                    {tx.description && <span>{tx.description}</span>}
+                    <span>{new Date(tx.timestamp).toLocaleDateString()}</span>
+                    <span>{tx.transactionReference}</span>
+                  </div>
+  
+                  <div style={rightContent}>
+                  <span style={bigBold} className={tx.transactionType === 'debit' ? 'text-danger fw-bold' : 'text-success fw-bold'}>
+                  {tx.paymentMethod === 'token_transfer' ? (
+                    tx.transactionType === 'debit' ? `- ${(tx.amount / 1.8).toLocaleString()}` : `+ ${(tx.amount / 1.8).toLocaleString()}`
+                  ) : (
+                    tx.transactionType === 'debit' ? `- ₦${tx.amount.toLocaleString()}` : `+ ₦${tx.amount.toLocaleString()}`
+                  )}
+                  </span>
+                  {tx.paymentMethod === 'token_transfer' && (
+                   <span>₦{tx.amount.toLocaleString()}</span>
+                  )}
+                  </div>
+  
+                </div>
+              ))
+            )
+          )}
+        </Container>
+      </div>
     </div>
   );
 };
