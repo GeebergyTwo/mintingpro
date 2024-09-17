@@ -1,6 +1,6 @@
 // my-app/server/routes/api.js
 const express = require('express');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const validator = require('validator');
 const mongoose = require('mongoose');
 const router = express.Router();
