@@ -98,7 +98,8 @@ router.post("/addUser", async (request, response) => {
       walletAddress,
       userReferralCode,
       referredBy: referralCode !== 'none' ? referralCode : null, // Save referralCode as null if not provided
-      balance: 2700 // Add 2700 naira as the starting balance
+      balance: 2700, // Add 2700 naira as the starting balance
+      mint_rate: 0.025
     });
 
     await newUser.save();
@@ -131,7 +132,8 @@ router.post("/addUser", async (request, response) => {
         phone_no: newUser.phone_no,
         walletAddress: newUser.walletAddress,
         userReferralCode: newUser.userReferralCode,
-        balance: newUser.balance // Return the balance
+        balance: newUser.balance, // Return the balance
+        mint_rate: newUser.mint_rate
       }
     });
 
