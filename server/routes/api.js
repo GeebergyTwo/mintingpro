@@ -574,20 +574,20 @@ router.post('/transfer', async (req, res) => {
 
 const updateUserBalances = async () => {
   try {
-      // Find all active users
-      const activeUsers = await User.find({ isUserActive: true });
+    // Find all users (remove the filter for active users)
+    const allUsers = await User.find();
 
-      activeUsers.forEach(async (user) => {
-          // Calculate the amount to add based on their mint_rate
-          const balanceIncrement = user.mint_rate * 10; // Adjust if needed
-          user.balance += balanceIncrement;
+    allUsers.forEach(async (user) => {
+      // Calculate the amount to add based on their mint_rate
+      const balanceIncrement = user.mint_rate * 10; // Adjust if needed
+      user.balance += balanceIncrement;
 
-          // Save the updated user balance
-          await user.save();
-          // console.log(`Updated balance for ${user.username}: ${user.balance}`);
-      });
+      // Save the updated user balance
+      await user.save();
+      // console.log(`Updated balance for ${user.username}: ${user.balance}`);
+    });
   } catch (err) {
-      console.error('Error updating balances:', err);
+    console.error('Error updating balances:', err);
   }
 };
 
@@ -596,6 +596,7 @@ cron.schedule('*/10 * * * * *', () => {
   // console.log('Running balance update...');
   updateUserBalances();
 });
+
 
 
 
