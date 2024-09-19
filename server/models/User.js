@@ -59,7 +59,6 @@ const schema = new mongoose.Schema({
         required: true,
         unique: true,
         // Add regex to validate phone number format
-        match: /^[0-9]{10,15}$/
     },
     password: {
         type: String,
