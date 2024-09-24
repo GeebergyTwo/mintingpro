@@ -80,6 +80,10 @@ const schema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    last_update: {
+      type: Date,
+      default: Date.now,  // Set to current date by default on user creation
+    },
     completed_tasks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Task' // Assuming you have a Task model
