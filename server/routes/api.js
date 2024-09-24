@@ -574,15 +574,32 @@ router.post('/transfer', async (req, res) => {
 
 const updateUserBalances = async () => {
   try {
-    // Find all users (remove the filter for active users)
+    // Find all users
     const allUsers = await User.find();
 
     allUsers.forEach(async (user) => {
-      // Calculate the amount to add based on their mint_rate
-      const balanceIncrement = user.mint_rate * 10; // Adjust if needed
+      const currentTime = new Date();
+      
+      // If last_update is not set, initialize it to current time (could happen for new users)
+      if (!user.last_update) {
+        user.last_update = currentTime;
+        await user.save();
+        return; // Skip this user for now as there's no elapsed time
+      }
+
+      // Calculate the time difference (in seconds) since the last update
+      const timeElapsedInSeconds = (currentTime - user.last_update) / 1000;
+
+      // Calculate the amount to add based on the time elapsed and their mint_rate
+      const balanceIncrement = user.mint_rate * timeElapsedInSeconds;
+
+      // Update the user's balance
       user.balance += balanceIncrement;
 
-      // Save the updated user balance
+      // Update the last_update timestamp
+      user.last_update = currentTime;
+
+      // Save the updated user data
       await user.save();
       // console.log(`Updated balance for ${user.username}: ${user.balance}`);
     });
@@ -591,8 +608,8 @@ const updateUserBalances = async () => {
   }
 };
 
-// Schedule the job to run every 10 seconds
-cron.schedule('*/10 * * * * *', () => {
+// Schedule the job to run every minute (or another desired interval)
+cron.schedule('*/1 * * * *', () => {
   // console.log('Running balance update...');
   updateUserBalances();
 });
