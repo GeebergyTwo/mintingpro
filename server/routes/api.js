@@ -153,10 +153,16 @@ router.post("/login", async (req, res) => {
   const { emailOrUsername, password } = req.body;
 
   try {
+    let user;
+
     // Check if the input is an email or username
-    const user = validator.isEmail(emailOrUsername)
-      ? await User.findOne({ email: emailOrUsername })
-      : await User.findOne({ username: emailOrUsername });
+    if (validator.isEmail(emailOrUsername)) {
+      // Use case-insensitive search for the email
+      user = await User.findOne({ email: { $regex: new RegExp(`^${emailOrUsername}$`, 'i') } });
+    } else {
+      // If it's a username, you can also apply case-insensitive search for the username if needed
+      user = await User.findOne({ username: { $regex: new RegExp(`^${emailOrUsername}$`, 'i') } });
+    }
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
@@ -174,7 +180,6 @@ router.post("/login", async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 });
-
 // get user data
 router.get('/getUserData/:userId', async (req, res) => {
   try {
