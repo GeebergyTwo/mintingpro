@@ -7,7 +7,9 @@ const TaskSchema = new mongoose.Schema({
   },
   description: String,
   link: String,
+  post_description: String,
   status: String,
+  taskType: String,
   points: {
     type: Number,
     default: 0
