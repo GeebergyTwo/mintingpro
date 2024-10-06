@@ -355,11 +355,9 @@ router.post('/withdraw', async (req, res) => {
       }
     );
 
-     // Log transfer response for debugging
-     console.log('Transfer Response:', transferResponse.data);
 
     // Check if the transfer was successful
-    if (transferResponse.data.status === 'success') {
+    if (transferResponse.data.status) {
       // Save transaction details to the database (for logging purposes)
       await saveTransactionData(`tx_${reference}`, user.email, withdrawAmount, user._id, 'success');
 
