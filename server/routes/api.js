@@ -268,7 +268,7 @@ const saveTransactionData = async (transactionReference, email, amount, userID, 
   try {
     // Basic validation
     if (!transactionReference || !email || !amount || !userID || !status || !transactionType || !description) {
-      console.log('TransactionReference, email, amount, userID, description, status, and transactionType are required');
+      throw new Error('TransactionReference, email, amount, userID, description, status, and transactionType are required');
     }
 
     // Create new transaction
@@ -358,7 +358,7 @@ router.post('/withdraw', async (req, res) => {
     // Check if the transfer was successful
     if (transferResponse.data.status === 'success') {
       // Save transaction details to the database (for logging purposes)
-      await saveTransactionData(`tx_${reference}`, user.email, withdrawAmount, user._id, 'success');
+      // await saveTransactionData(`tx_${reference}`, user.email, withdrawAmount, user._id, 'success');
 
       // Return success response to front end
       return res.json({ success: true, message: 'Withdrawal successful' });
