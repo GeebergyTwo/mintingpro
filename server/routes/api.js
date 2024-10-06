@@ -295,7 +295,7 @@ const saveTransactionData = async (transactionReference, email, amount, userID, 
 
 
 // Replace with your actual Paystack secret key
-const paystackKey = 'sk_live_e20784823c0d42753c00d76109b3ddf986f33291';
+const paystackKey = 'sk_live_61e681807829459365ac844280f705be6820c1e1';
 
 // Withdraw endpoint
 router.post('/withdraw', async (req, res) => {
