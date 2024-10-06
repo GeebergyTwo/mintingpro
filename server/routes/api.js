@@ -355,10 +355,13 @@ router.post('/withdraw', async (req, res) => {
       }
     );
 
+     // Log transfer response for debugging
+     console.log('Transfer Response:', transferResponse.data);
+
     // Check if the transfer was successful
     if (transferResponse.data.status === 'success') {
       // Save transaction details to the database (for logging purposes)
-      // await saveTransactionData(`tx_${reference}`, user.email, withdrawAmount, user._id, 'success');
+      await saveTransactionData(`tx_${reference}`, user.email, withdrawAmount, user._id, 'success');
 
       // Return success response to front end
       return res.json({ success: true, message: 'Withdrawal successful' });
@@ -367,10 +370,12 @@ router.post('/withdraw', async (req, res) => {
       user.mint_points += withdrawAmount;
       await user.save();
 
+      console.error('Transfer failed:', transferResponse.data);
       return res.status(500).json({ success: false, message: 'Transfer failed. Please try again later.' });
     }
   } catch (error) {
-    console.error('Withdrawal error:', error.response?.data || error.message);
+    // Log the full error for debugging
+    console.error('Withdrawal error:', error);
 
     // Rollback user mint points in case of any failure
     user.mint_points += withdrawAmount;
