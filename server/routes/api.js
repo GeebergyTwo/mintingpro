@@ -258,60 +258,14 @@ router.post('/updateUserPlan', async (req, res) => {
   }
 });
 
-// Debit user's mint_points by a specific amount
-router.post('/debitMintPoints', async (req, res) => {
-  try {
-    const { userID, debitAmount } = req.body;
-
-    // Validate inputs
-    if (!userID || !mongoose.Types.ObjectId.isValid(userID)) {
-      return res.status(400).json({ success: false, message: 'Invalid user ID' });
-    }
-
-    if (typeof debitAmount !== 'number' || debitAmount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid debit amount' });
-    }
-
-    // Find the user by userID
-    const user = await User.findById(userID);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    // Check if the user has enough mint points
-    if (user.mint_points < debitAmount) {
-      return res.status(400).json({ success: false, message: 'Insufficient mint points' });
-    }
-
-    // Debit mint points
-    user.mint_points -= debitAmount;
-
-    // Save the updated user data
-    await user.save();
-
-    // Return success response
-    res.status(200).json({ success: true, message: `Debited ${debitAmount} mint points successfully`, mint_points: user.mint_points });
-  } catch (error) {
-    console.error('Error debiting mint points:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-});
-
-// Create a new transaction
-router.post('/createTransaction', async (req, res) => {
-  const {
-    transactionReference,
-    email,
-    amount,
-    userID,
-    status,
-    transactionType,
-    description,
-    planType, // This is optional
-  } = req.body;
-
-
-  try {
+const saveTransactionData = async (transactionReference, email, amount, userID, status) => {
+ 
+      const planType = 'Withdrawal';
+      const timestamp = new Date();
+      const description = 'Withdrawal';
+      const transactionType = 'debit';
+  
+     try {
     // Basic validation
     if (!transactionReference || !email || !amount || !userID || !status || !transactionType || !description) {
       return res.status(400).json({ message: 'TransactionReference, email, amount, userID, description, status and transactionType are required' });
@@ -340,8 +294,88 @@ router.post('/createTransaction', async (req, res) => {
     console.error('Error creating transaction:', error);
     return res.status(500).json({ message: 'Server error' });
   }
-});
+  };
 
+// Replace with your actual Paystack secret key
+const paystackKey = 'sk_live_e20784823c0d42753c00d76109b3ddf986f33291';
+
+// Withdraw endpoint
+router.post('/withdraw', async (req, res) => {
+  const { userID, withdrawAmount, recipientName, accountNumber, bankCode } = req.body;
+
+  try {
+    // Fetch the user's mint points and validate transaction
+    const user = await getUserById(userID); // Fetch user details from database
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (withdrawAmount < 200) {
+      return res.status(400).json({ success: false, message: 'Minimum withdrawal amount is ₦200' });
+    }
+
+    if (user.mint_points < withdrawAmount) {
+      return res.status(400).json({ success: false, message: 'Insufficient mint points' });
+    }
+
+    // Debit the user's mint points (subtract the amount)
+    user.mint_points -= withdrawAmount;
+    await user.save(); // Save updated mint points to the database
+
+    // Create the recipient for the transfer via Paystack
+    const createRecipientResponse = await axios.post(
+      'https://api.paystack.co/transferrecipient',
+      {
+        type: 'nuban',
+        name: recipientName,
+        account_number: accountNumber,
+        bank_code: bankCode,
+        currency: 'NGN',
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${paystackKey}`,
+        },
+      }
+    );
+
+    const recipientCode = createRecipientResponse.data.data.recipient_code;
+
+    // Initiate the transfer via Paystack
+    const reference = uuidv4(); // Unique transaction reference
+    const transferResponse = await axios.post(
+      'https://api.paystack.co/transfer',
+      {
+        source: 'balance',
+        amount: withdrawAmount * 100, // Amount in kobo (Paystack requires this)
+        recipient: recipientCode,
+        reason: 'MintingPro Withdrawal',
+        reference: `tx_${reference}`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${paystackKey}`,
+        },
+      }
+    );
+
+    // Save transaction details to the database (for logging purposes)
+    await saveTransactionData(reference, user.email, withdrawAmount, user._id, 'success');
+
+    // Return success response to front end
+    return res.json({ success: true, message: 'Withdrawal successful' });
+  } catch (error) {
+    console.error('Withdrawal error:', error.response?.data || error.message);
+
+    // Rollback user mint points in case of transfer failure
+    user.mint_points += withdrawAmount;
+    await user.save();
+
+    // Return error to front end
+    return res.status(500).json({
+      success: false,
+      message: 'Withdrawal failed. Please try again later.',
+    });
+  }
+});
 
 // Fetch transactions for a specific user by userID
 router.get('/transactions', async (req, res) => {
