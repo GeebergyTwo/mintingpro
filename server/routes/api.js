@@ -268,7 +268,7 @@ const saveTransactionData = async (transactionReference, email, amount, userID, 
   try {
     // Basic validation
     if (!transactionReference || !email || !amount || !userID || !status || !transactionType || !description) {
-      throw new Error('TransactionReference, email, amount, userID, description, status, and transactionType are required');
+      console.log('TransactionReference, email, amount, userID, description, status, and transactionType are required');
     }
 
     // Create new transaction
