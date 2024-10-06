@@ -11,6 +11,7 @@ const PendingTask = require('../models/PendingTask');
 const { MongoClient } = require('mongodb');
 const cron = require('node-cron');
 const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 
 // const uri = "mongodb+srv://TheGilo:OnlyOneGilo@cluster1.pvwjh.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDashCluster";
 const uri = "mongodb+srv://mintingpro:MintingPro1411@mintingpro.3fw8f.mongodb.net/mintingpro?retryWrites=true&w=majority&appName=mintingpro";
@@ -302,10 +303,10 @@ const paystackKey = 'sk_live_e20784823c0d42753c00d76109b3ddf986f33291';
 // Withdraw endpoint
 router.post('/withdraw', async (req, res) => {
   const { userID, withdrawAmount, recipientName, accountNumber, bankCode } = req.body;
+  const user = await User.findById(userID);
 
   try {
     // Fetch the user's mint points and validate transaction
-    const user = await getUserById(userID); // Fetch user details from database
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     if (withdrawAmount < 200) {
@@ -357,15 +358,24 @@ router.post('/withdraw', async (req, res) => {
       }
     );
 
-    // Save transaction details to the database (for logging purposes)
-    await saveTransactionData(reference, user.email, withdrawAmount, user._id, 'success');
+    // Check if the transfer was successful
+    if (transferResponse.data.status === 'success') {
+      // Save transaction details to the database (for logging purposes)
+      await saveTransactionData(reference, user.email, withdrawAmount, user._id, 'success');
 
-    // Return success response to front end
-    return res.json({ success: true, message: 'Withdrawal successful' });
+      // Return success response to front end
+      return res.json({ success: true, message: 'Withdrawal successful' });
+    } else {
+      // If the transfer fails, rollback the user's mint points and return an error
+      user.mint_points += withdrawAmount;
+      await user.save();
+
+      return res.status(500).json({ success: false, message: 'Transfer failed. Please try again later.' });
+    }
   } catch (error) {
     console.error('Withdrawal error:', error.response?.data || error.message);
 
-    // Rollback user mint points in case of transfer failure
+    // Rollback user mint points in case of any failure
     user.mint_points += withdrawAmount;
     await user.save();
 
