@@ -260,42 +260,39 @@ router.post('/updateUserPlan', async (req, res) => {
 });
 
 const saveTransactionData = async (transactionReference, email, amount, userID, status) => {
- 
-      const planType = 'Withdrawal';
-      const timestamp = new Date();
-      const description = 'Withdrawal';
-      const transactionType = 'debit';
-  
-     try {
+  const planType = 'Withdrawal';
+  const timestamp = new Date();
+  const description = 'Withdrawal';
+  const transactionType = 'debit'; // Make sure this is 'debit' for withdrawals
+
+  try {
     // Basic validation
     if (!transactionReference || !email || !amount || !userID || !status || !transactionType || !description) {
-      return res.status(400).json({ message: 'TransactionReference, email, amount, userID, description, status and transactionType are required' });
+      throw new Error('TransactionReference, email, amount, userID, description, status, and transactionType are required');
     }
 
     // Create new transaction
     const newTransaction = await Transaction.create({
-      transactionReference: 'tx-' + transactionReference,
+      transactionReference,  // No need to add 'tx-' again here
       email,
       amount,
       userID,
       status,
-      planType,  // Save the plan type if it exists
-      timestamp: new Date(),  // Use the current date/time as the timestamp
-      transactionType,  // Force the transaction type to always be 'credit'
+      planType, // Plan type (e.g., 'Withdrawal')
+      timestamp, // Use the current date/time as the timestamp
+      transactionType, // Always 'debit' for withdrawal
       description,
-      paymentMethod: 'bank_transfer', // You can dynamically set this based on input
-      currencyCode: 'NGN', // Default to 'NGN'
+      paymentMethod: 'bank_transfer', // Default method to bank_transfer
+      currencyCode: 'NGN', // Default currency to NGN
     });
 
-    return res.status(201).json({
-      message: 'Transaction created successfully',
-      transaction: newTransaction,
-    });
+    return newTransaction; // Return the created transaction
   } catch (error) {
     console.error('Error creating transaction:', error);
-    return res.status(500).json({ message: 'Server error' });
+    throw new Error('Error creating transaction');
   }
-  };
+};
+
 
 // Replace with your actual Paystack secret key
 const paystackKey = 'sk_live_e20784823c0d42753c00d76109b3ddf986f33291';
@@ -361,7 +358,7 @@ router.post('/withdraw', async (req, res) => {
     // Check if the transfer was successful
     if (transferResponse.data.status === 'success') {
       // Save transaction details to the database (for logging purposes)
-      await saveTransactionData(reference, user.email, withdrawAmount, user._id, 'success');
+      await saveTransactionData(`tx_${reference}`, user.email, withdrawAmount, user._id, 'success');
 
       // Return success response to front end
       return res.json({ success: true, message: 'Withdrawal successful' });
