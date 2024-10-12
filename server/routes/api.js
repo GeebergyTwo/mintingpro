@@ -226,27 +226,34 @@ router.post('/updateUserPlan', async (req, res) => {
     // Update mint rate
     user.mint_rate = newMintRate;
 
-    // Handle referral logic if the user has a valid referral
-    if (user.referredBy) {
-      const referrer = await User.findOne({ userReferralCode: user.referredBy });
+// Handle referral logic if the user has a valid referral
+if (user.referredBy) {
+  const referrer = await User.findOne({ userReferralCode: user.referredBy });
 
-      if (referrer && !user.referralRedeemed) {
-          referrer.inactiveReferrals -= 1;
-          referrer.activeReferrals += 1;
-          referrer.referralsCount += 1;
-          referrer.mint_points += 1000;
-          // update user's referral redeemed state
-          user.referralRedeemed = true;
+  if (referrer && !user.referralRedeemed) {
+      referrer.inactiveReferrals -= 1;
+      referrer.activeReferrals += 1;
+      referrer.referralsCount += 1;
 
-          // Check if referralsCount is 3 to increase the referrer's mint rate
-          if (referrer.referralsCount >= 3) {
-            referrer.mint_rate += 0.01; // Increase referrer's mint rate by 0.01
-            referrer.referralsCount = 0; // Reset referrals count
-          }
-
-          await referrer.save();
+      // Check if the user is an admin to assign 1600 points, otherwise 1000
+      if (user.role === 'admin') {
+        referrer.mint_points += 1600;
+      } else {
+        referrer.mint_points += 1000;
       }
-    }
+
+      // update user's referral redeemed state
+      user.referralRedeemed = true;
+
+      // Check if referralsCount is 3 to increase the referrer's mint rate
+      if (referrer.referralsCount >= 3) {
+        referrer.mint_rate += 0.01; // Increase referrer's mint rate by 0.01
+        referrer.referralsCount = 0; // Reset referrals count
+      }
+
+      await referrer.save();
+  }
+}
 
     // Save the updated user data
     await user.save();
