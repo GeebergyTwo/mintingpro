@@ -237,7 +237,7 @@ if (user.referredBy) {
 
       // Check if the user is an admin to assign 1600 points, otherwise 1000
       if (user.role === 'admin') {
-        referrer.mint_points += 1600;
+        referrer.mint_points += 1400;
       } else {
         referrer.mint_points += 1000;
       }
