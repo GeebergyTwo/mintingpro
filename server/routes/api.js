@@ -31,6 +31,14 @@ connectToMongoDB();
 
 
 
+axios.get('https://ifconfig.me')
+  .then(response => {
+    console.log('Public IP:', response.data);
+  })
+  .catch(error => {
+    console.error('Error fetching IP:', error);
+  });
+
 router.post("/addUser", async (request, response) => {
   try {
     const {
