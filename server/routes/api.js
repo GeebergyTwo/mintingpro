@@ -14,7 +14,6 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
 // const uri = "mongodb+srv://TheGilo:OnlyOneGilo@cluster1.pvwjh.mongodb.net/userData?retryWrites=true&w=majority&appName=DripDashCluster";
-const uri = "mongodb+srv://mintingpro:OneTmeMint@mintingpro.3fw8f.mongodb.net/mintingpro?retryWrites=true&w=majority&appName=mintingpro";
 
 async function connectToMongoDB() {
   try {
