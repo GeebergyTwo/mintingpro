@@ -319,6 +319,7 @@ const paystackKey = process.env.PS_KEY;
 router.post('/withdraw', async (req, res) => {
   const { userID, withdrawAmount, recipientName, accountNumber, bankCode } = req.body;
   const user = await User.findById(userID);
+  const withdrawAmountInPoints = withdrawAmount / 1.2;
 
   try {
     // Fetch the user's mint points and validate transaction
@@ -328,12 +329,12 @@ router.post('/withdraw', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Minimum withdrawal amount is ₦200' });
     }
 
-    if (user.mint_points < withdrawAmount) {
+    if (user.mint_points < withdrawAmountInPoints) {
       return res.status(400).json({ success: false, message: 'Insufficient mint points' });
     }
 
     // Debit the user's mint points (subtract the amount)
-    user.mint_points -= withdrawAmount;
+    user.mint_points -= withdrawAmountInPoints;
     await user.save(); // Save updated mint points to the database
 
     // Create the recipient for the transfer via Paystack
@@ -383,7 +384,7 @@ router.post('/withdraw', async (req, res) => {
       return res.json({ success: true, message: 'Withdrawal successful' });
     } else {
       // If the transfer fails, rollback the user's mint points and return an error
-      user.mint_points += withdrawAmount;
+      user.mint_points += withdrawAmountInPoints;
       await user.save();
 
       console.error('Transfer failed:', transferResponse.data);
@@ -394,7 +395,7 @@ router.post('/withdraw', async (req, res) => {
     console.error('Withdrawal error:', error);
 
     // Rollback user mint points in case of any failure
-    user.mint_points += withdrawAmount;
+    user.mint_points += withdrawAmountInPoints;
     await user.save();
 
     // Return error to front end
