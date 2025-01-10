@@ -733,6 +733,45 @@ router.put('/users/:id', async (req, res) => {
   }
 });
 
+const PAYSTACK_SECRET_KEY = process.env.backend_sk_key; // Replace with your Paystack secret key
+
+// Middleware to parse JSON
+app.use(express.json());
+
+// Route to get total payments and transactions details
+router.get('/backend-transactions', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.paystack.co/transaction', {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+      },
+    });
+
+    const transactions = response.data.data;
+
+    // Filter successful transactions
+    const successfulTransactions = transactions.filter(txn => txn.status === 'success');
+
+    // Calculate total amount (convert from kobo to NGN)
+    const totalAmount = successfulTransactions.reduce((sum, txn) => sum + txn.amount, 0) / 100;
+
+    // Prepare data to send
+    const transactionDetails = successfulTransactions.map(txn => ({
+      id: txn.id,
+      amount: txn.amount / 100, // Convert from kobo to NGN
+      status: txn.status,
+      customer: txn.customer.name || txn.customer.email, // Customer's name or email
+      date: txn.created_at,
+      plan: txn.plan || 'No plan', // Some transactions may not have a plan field
+    }));
+
+    res.json({ totalAmount, transactionDetails });
+  } catch (error) {
+    console.error('Error fetching transactions:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to fetch transaction data' });
+  }
+});
+
 
 
 // update user tokens every ten seconds
