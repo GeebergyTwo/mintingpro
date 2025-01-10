@@ -735,9 +735,6 @@ router.put('/users/:id', async (req, res) => {
 
 const PAYSTACK_SECRET_KEY = process.env.backend_sk_key; // Replace with your Paystack secret key
 
-// Middleware to parse JSON
-app.use(express.json());
-
 // Route to get total payments and transactions details
 router.get('/backend-transactions', async (req, res) => {
   try {
