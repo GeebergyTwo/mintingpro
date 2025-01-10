@@ -425,6 +425,37 @@ router.get('/transactions', async (req, res) => {
   }
 });
 
+// Create a new task
+router.post('/tasks', async (req, res) => {
+  try {
+    const { title, description, link, post_description, status, taskType, points } = req.body;
+
+    // Validate required fields
+    if (!title || !taskType) {
+      return res.status(400).json({ message: 'Title and Task Type are required' });
+    }
+
+    // Create new task instance
+    const newTask = new Task({
+      title,
+      description,
+      link: taskType === 'link' ? link : undefined,
+      post_description: taskType === 'post' ? post_description : undefined,
+      status,
+      taskType,
+      points
+    });
+
+    // Save the task to the database
+    await newTask.save();
+    res.status(201).json({ message: 'Task created successfully', task: newTask });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 // API to get all tasks and user's completed tasks
 router.get('/allTasks/:userId', async (req, res) => {
   const { userId } = req.params;
