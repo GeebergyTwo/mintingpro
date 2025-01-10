@@ -637,6 +637,40 @@ router.post('/transfer', async (req, res) => {
 });
 
 
+router.get('/users', async (req, res) => {
+  try {
+
+
+    const users = await User.find(); // no filter
+    
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+router.put('/users/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;  // Assuming the ID is passed in the URL
+    const updatedUser = req.body;
+
+    // Ensure the ID is valid and exists
+    const user = await User.findByIdAndUpdate(userId, updatedUser, { new: true });
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(400).send('Error updating user: ' + error.message);
+  }
+});
+
+
 
 // update user tokens every ten seconds
 
@@ -675,6 +709,8 @@ const updateUserBalances = async () => {
     console.error('Error updating balances:', err);
   }
 };
+
+
 
 // Schedule the job to run every minute (or another desired interval)
 cron.schedule('*/1 * * * *', () => {
