@@ -456,6 +456,21 @@ router.post('/tasks', async (req, res) => {
   }
 });
 
+router.get('/getAllTasks', async (req, res) => {
+  try {
+
+
+    const tasks = await Task.find(); // no filter
+    
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
 // API to get all tasks and user's completed tasks
 router.get('/allTasks/:userId', async (req, res) => {
   const { userId } = req.params;
