@@ -769,6 +769,22 @@ router.get('/backend-transactions', async (req, res) => {
   }
 });
 
+router.get('/backend-balance', async (req, res) => {
+  const secretKey = process.env.backend_balance_sk_key;
+
+  try {
+    const response = await axios.get('https://api.paystack.co/balance', {
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.response?.data || error.message });
+  }
+});
+
 
 
 // update user tokens every ten seconds
