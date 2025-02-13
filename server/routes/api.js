@@ -825,6 +825,16 @@ const updateUserBalances = async () => {
   }
 };
 
+// Endpoint to fetch all usernames
+router.get('/usernames', async (req, res) => {
+    try {
+        const usernames = await User.find({}, { username: 1, _id: 0 }); // Include 'username', exclude '_id'
+        res.json(usernames);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 
 // Schedule the job to run every minute (or another desired interval)
